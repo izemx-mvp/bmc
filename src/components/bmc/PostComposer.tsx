@@ -538,10 +538,14 @@ export function PostComposer({
 
                 {draft.images.length > 0 && (
                   <div className="panel p-4">
-                    <p className="font-display text-sm font-semibold">Description des images</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Précisez ce que montre chaque visuel : l'IA et l'accessibilité s'en servent.
+                    <p className="font-display text-sm font-semibold">
+                      Description des images{" "}
+                      <span className="text-xs font-normal text-muted-foreground">(optionnel)</span>
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Décrivez le visuel souhaité : l'IA s'en sert pour générer l'image.
+                    </p>
+
                     <div className="mt-3 space-y-2.5">
                       {draft.images.map((im, i) => (
                         <div key={im.id} className="flex items-center gap-3">
