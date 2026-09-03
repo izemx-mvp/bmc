@@ -959,16 +959,20 @@ export function PostComposer({
 export function PreviewCard({
   draft,
   platform,
+  caption,
   onRemove,
 }: {
   draft: Omit<Post, "id">;
   platform: PlatformId;
+  caption?: string;
   onRemove?: (id: string) => void;
 }) {
   const [active, setActive] = useState(0);
   const meta = PLATFORM_META[platform];
   const images = draft.images;
   const current = images[Math.min(active, Math.max(0, images.length - 1))];
+  const text = caption ?? draft.platformCaptions?.[platform] ?? draft.description;
+
 
   return (
     <div className="panel overflow-hidden">
@@ -1035,8 +1039,9 @@ export function PreviewCard({
           <Send className="h-4 w-4" />
         </div>
         <p className="whitespace-pre-wrap text-[13px] leading-relaxed">
-          {draft.description || "Votre description apparaîtra ici."}
+          {text || "Votre description apparaîtra ici."}
         </p>
+
         {draft.hashtags && <p className="text-[13px] text-primary">{draft.hashtags}</p>}
         {draft.firstComment && (
           <p className="border-t border-border/60 pt-2 text-[12px] text-muted-foreground">
