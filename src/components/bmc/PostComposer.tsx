@@ -887,7 +887,11 @@ export function PostComposer({
               <ArrowLeft className="h-4 w-4" /> {step === 0 ? "Annuler" : "Retour"}
             </Button>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => submit("draft")} disabled={publishing}>
+              <Button
+                variant="outline"
+                onClick={() => submit("draft")}
+                disabled={readOnly || publishing}
+              >
                 Enregistrer en brouillon
               </Button>
               {step < 2 && (
