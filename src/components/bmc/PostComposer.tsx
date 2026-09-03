@@ -100,6 +100,7 @@ export function PostComposer({
   const [aiDone, setAiDone] = useState(!aiMode);
   const [publishing, setPublishing] = useState(false);
   const [done, setDone] = useState<Draft | null>(null);
+  const [pendingDesc, setPendingDesc] = useState<Record<number, string>>({});
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -107,6 +108,7 @@ export function PostComposer({
     const base = editing ? { ...editing } : emptyPost();
     setDraft(base);
     setImageCount(Math.max(1, base.images.length || 1));
+    setPendingDesc({});
     setStep(0);
     setAiDone(!aiMode);
     setAiPrompt("");
