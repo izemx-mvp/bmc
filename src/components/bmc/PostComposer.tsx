@@ -669,23 +669,46 @@ export function PostComposer({
             <div className="grid animate-rise gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
               <div>
                 <div className="mb-3 flex flex-wrap gap-2">
-                  {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPreviewPlatform(p)}
-                      className={cn(
-                        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all duration-300",
-                        previewPlatform === p
-                          ? "border-primary/60 bg-surface-3 text-foreground"
-                          : "border-border text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <PlatformChip id={p} size={18} /> {PLATFORM_META[p].label}
-                    </button>
-                  ))}
+                  {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => {
+                    const selected = draft.platforms.includes(p);
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPreviewPlatform(p)}
+                        className={cn(
+                          "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all duration-300",
+                          previewPlatform === p
+                            ? "border-primary/60 bg-surface-3 text-foreground"
+                            : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <PlatformChip id={p} size={18} /> {PLATFORM_META[p].label}
+                        {selected && <Check className="h-3 w-3 text-primary" />}
+                        {draft.platformCaptions?.[p] !== undefined && (
+                          <span className="rounded-full bg-primary/15 px-1.5 text-[10px] text-primary">
+                            perso
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <PreviewCard draft={draft} platform={previewPlatform} onRemove={removeImage} />
+                <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={draft.platforms.includes(previewPlatform)}
+                    onChange={() => togglePlatform(previewPlatform)}
+                    className="accent-[var(--primary)]"
+                  />
+                  Diffuser sur {PLATFORM_META[previewPlatform].label}
+                </label>
+                <PreviewCard
+                  draft={draft}
+                  platform={previewPlatform}
+                  caption={captionFor(previewPlatform)}
+                  onRemove={removeImage}
+                />
               </div>
 
               <div className="space-y-5">
@@ -696,14 +719,32 @@ export function PostComposer({
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="desc2">Description</Label>
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="desc2">
+                      Description — {PLATFORM_META[previewPlatform].label}
+                    </Label>
+                    {draft.platformCaptions?.[previewPlatform] !== undefined && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => resetCaptionFor(previewPlatform)}
+                      >
+                        Réutiliser le texte commun
+                      </Button>
+                    )}
+                  </div>
                   <Textarea
                     id="desc2"
-                    value={draft.description}
-                    onChange={(e) => set({ description: e.target.value })}
+                    value={captionFor(previewPlatform)}
+                    onChange={(e) => setCaptionFor(previewPlatform, e.target.value)}
                     className="mt-2 min-h-36 bg-surface/60"
                   />
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    Ce texte ne s'applique qu'à {PLATFORM_META[previewPlatform].label}. Les autres
+                    plateformes gardent leur propre version.
+                  </p>
                 </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="tags2">Hashtags</Label>
