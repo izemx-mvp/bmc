@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ImageIcon, Lock, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
+import { ImageIcon, Loader2, Lock, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
 
 import { PageHeader } from "@/components/bmc/AppShell";
 import { PLATFORM_META, PlatformChip } from "@/components/bmc/branding";
@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { useBmc, type PlatformId, type Post, type PostStatus } from "@/lib/bmc-store";
+import { buildAiSuggestion, useBmc, type PlatformId, type Post, type PostStatus } from "@/lib/bmc-store";
 
 export const Route = createFileRoute("/cm/posts")({
   head: () => ({
@@ -50,11 +50,12 @@ export function StatusBadge({ status }: { status: PostStatus }) {
 }
 
 function PostsPage() {
-  const { posts, deletePost } = useBmc();
+  const { posts, deletePost, addPost, platformSettings, brand } = useBmc();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | PostStatus>("all");
   const [platform, setPlatform] = useState<"all" | PlatformId>("all");
   const [date, setDate] = useState("");
+  const [generating, setGenerating] = useState(false);
   const [composer, setComposer] = useState<{ open: boolean; ai: boolean; editing: Post | null }>({
     open: false,
     ai: false,
@@ -88,8 +89,30 @@ function PostsPage() {
             >
               <Plus className="h-4 w-4" /> Créer un post
             </Button>
-            <Button size="lg" onClick={() => setComposer({ open: true, ai: true, editing: null })}>
-              <Sparkles className="h-4 w-4" /> Générer avec IA
+            <Button
+              size="lg"
+              disabled={generating}
+              onClick={() => {
+                setGenerating(true);
+                setTimeout(() => {
+                  addPost(buildAiSuggestion(platformSettings, brand));
+                  setGenerating(false);
+                  setQ("");
+                  setStatus("draft");
+                  setPlatform("all");
+                  setDate("");
+                }, 1400);
+              }}
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Génération…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" /> Générer avec IA
+                </>
+              )}
             </Button>
           </>
         }
@@ -175,8 +198,8 @@ function PostsPage() {
                   <div className="flex flex-wrap items-center gap-1.5">
                     <StatusBadge status={p.status} />
                     {p.aiGenerated && (
-                      <span className="flex items-center gap-1 rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 text-[11px] text-primary backdrop-blur">
-                        <Sparkles className="h-3 w-3" /> IA
+                      <span className="flex items-center gap-1 rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary backdrop-blur">
+                        <Sparkles className="h-3 w-3" /> Suggestion IA
                       </span>
                     )}
                   </div>
