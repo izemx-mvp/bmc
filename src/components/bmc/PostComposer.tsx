@@ -31,13 +31,24 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CAPTION_LENGTHS,
   STOCK_IMAGES,
+  TONES,
   emptyPost,
   newImageId,
   useBmc,
+  type CaptionLength,
   type PlatformId,
   type Post,
   type PostImage,
+  type ToneId,
 } from "@/lib/bmc-store";
 import { PLATFORM_META, PlatformChip, PlatformIcon, BmcLogo } from "./branding";
 
