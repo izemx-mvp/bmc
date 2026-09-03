@@ -552,43 +552,61 @@ export function PostComposer({
                   <ImageGrid />
                 </div>
 
-                {draft.images.length > 0 && (
-                  <div className="panel p-4">
-                    <p className="font-display text-sm font-semibold">
-                      Description des images{" "}
-                      <span className="text-xs font-normal text-muted-foreground">(optionnel)</span>
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Décrivez le visuel souhaité : l'IA s'en sert pour générer l'image.
-                    </p>
+                <div className="panel p-4">
+                  <p className="font-display text-sm font-semibold">
+                    Description de chaque image{" "}
+                    <span className="text-xs font-normal text-muted-foreground">(optionnel)</span>
+                  </p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Chaque visuel a sa propre description : l'IA s'en sert comme prompt pour générer
+                    l'image correspondante.
+                  </p>
 
-                    <div className="mt-3 space-y-2.5">
-                      {draft.images.map((im, i) => (
-                        <div key={im.id} className="flex items-center gap-3">
-                          <img
-                            src={im.src}
-                            alt={im.name}
-                            className="h-10 w-10 shrink-0 rounded-lg object-cover"
-                            loading="lazy"
-                          />
+                  <div className="mt-3 space-y-2.5">
+                    {Array.from({ length: imageCount }).map((_, i) => {
+                      const im = draft.images[i];
+                      return (
+                        <div key={im?.id ?? `slot-${i}`} className="flex items-center gap-3">
+                          {im ? (
+                            <img
+                              src={im.src}
+                              alt={im.name}
+                              className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={() => fileRef.current?.click()}
+                              className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-dashed border-border/80 text-muted-foreground transition-colors hover:border-primary/60 hover:text-primary"
+                              aria-label={`Ajouter le visuel ${i + 1}`}
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          )}
                           <Input
-                            value={im.description ?? ""}
-                            onChange={(e) =>
-                              setDraft((d) => ({
-                                ...d,
-                                images: d.images.map((x) =>
-                                  x.id === im.id ? { ...x, description: e.target.value } : x,
-                                ),
-                              }))
-                            }
-                            placeholder={`Description du visuel ${String(i + 1).padStart(2, "0")}`}
+                            value={im ? (im.description ?? "") : (pendingDesc[i] ?? "")}
+                            onChange={(e) => {
+                              const v = e.target.value;
+                              if (im) {
+                                setDraft((d) => ({
+                                  ...d,
+                                  images: d.images.map((x) =>
+                                    x.id === im.id ? { ...x, description: v } : x,
+                                  ),
+                                }));
+                              } else {
+                                setPendingDesc((prev) => ({ ...prev, [i]: v }));
+                              }
+                            }}
+                            placeholder={`Description de l'image ${String(i + 1).padStart(2, "0")} — ex : gros plan sur un raccord laiton`}
                             className="bg-surface/60"
                           />
                         </div>
-                      ))}
-                    </div>
+                      );
+                    })}
                   </div>
-                )}
+                </div>
               </section>
 
               <section className="space-y-5">
