@@ -502,10 +502,8 @@ export function PostComposer({
                     <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
                       Choisir des fichiers
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={addStock}>
-                      <ImageIcon className="h-3.5 w-3.5" /> Banque BMC
-                    </Button>
                   </div>
+
                   <input
                     ref={fileRef}
                     type="file"
