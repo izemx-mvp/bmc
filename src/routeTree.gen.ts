@@ -10,33 +10,103 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as CmRouteImport } from './routes/cm'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as CmIndexRouteImport } from './routes/cm.index'
+import { Route as CmCalendarRouteImport } from './routes/cm.calendar'
+import { Route as CmConfigRouteImport } from './routes/cm.config'
+import { Route as CmPostsRouteImport } from './routes/cm.posts'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CmRoute = CmRouteImport.update({
+  id: '/cm',
+  path: '/cm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CmIndexRoute = CmIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CmRoute,
+} as any)
+const CmCalendarRoute = CmCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
+  getParentRoute: () => CmRoute,
+} as any)
+const CmConfigRoute = CmConfigRouteImport.update({
+  id: '/config',
+  path: '/config',
+  getParentRoute: () => CmRoute,
+} as any)
+const CmPostsRoute = CmPostsRouteImport.update({
+  id: '/posts',
+  path: '/posts',
+  getParentRoute: () => CmRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cm': typeof CmRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/cm/calendar': typeof CmCalendarRoute
+  '/cm/config': typeof CmConfigRoute
+  '/cm/posts': typeof CmPostsRoute
+  '/cm/': typeof CmIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRoute
+  '/cm/calendar': typeof CmCalendarRoute
+  '/cm/config': typeof CmConfigRoute
+  '/cm/posts': typeof CmPostsRoute
+  '/cm': typeof CmIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cm': typeof CmRouteWithChildren
+  '/dashboard': typeof DashboardRoute
+  '/cm/calendar': typeof CmCalendarRoute
+  '/cm/config': typeof CmConfigRoute
+  '/cm/posts': typeof CmPostsRoute
+  '/cm/': typeof CmIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cm'
+    | '/dashboard'
+    | '/cm/calendar'
+    | '/cm/config'
+    | '/cm/posts'
+    | '/cm/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/dashboard' | '/cm/calendar' | '/cm/config' | '/cm/posts' | '/cm'
+  id:
+    | '__root__'
+    | '/'
+    | '/cm'
+    | '/dashboard'
+    | '/cm/calendar'
+    | '/cm/config'
+    | '/cm/posts'
+    | '/cm/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CmRoute: typeof CmRouteWithChildren
+  DashboardRoute: typeof DashboardRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +118,71 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cm': {
+      id: '/cm'
+      path: '/cm'
+      fullPath: '/cm'
+      preLoaderRoute: typeof CmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cm/': {
+      id: '/cm/'
+      path: '/'
+      fullPath: '/cm/'
+      preLoaderRoute: typeof CmIndexRouteImport
+      parentRoute: typeof CmRoute
+    }
+    '/cm/calendar': {
+      id: '/cm/calendar'
+      path: '/calendar'
+      fullPath: '/cm/calendar'
+      preLoaderRoute: typeof CmCalendarRouteImport
+      parentRoute: typeof CmRoute
+    }
+    '/cm/config': {
+      id: '/cm/config'
+      path: '/config'
+      fullPath: '/cm/config'
+      preLoaderRoute: typeof CmConfigRouteImport
+      parentRoute: typeof CmRoute
+    }
+    '/cm/posts': {
+      id: '/cm/posts'
+      path: '/posts'
+      fullPath: '/cm/posts'
+      preLoaderRoute: typeof CmPostsRouteImport
+      parentRoute: typeof CmRoute
+    }
   }
 }
 
+interface CmRouteChildren {
+  CmCalendarRoute: typeof CmCalendarRoute
+  CmConfigRoute: typeof CmConfigRoute
+  CmPostsRoute: typeof CmPostsRoute
+  CmIndexRoute: typeof CmIndexRoute
+}
+
+const CmRouteChildren: CmRouteChildren = {
+  CmCalendarRoute: CmCalendarRoute,
+  CmConfigRoute: CmConfigRoute,
+  CmPostsRoute: CmPostsRoute,
+  CmIndexRoute: CmIndexRoute,
+}
+
+const CmRouteWithChildren = CmRoute._addFileChildren(CmRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CmRoute: CmRouteWithChildren,
+  DashboardRoute: DashboardRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
