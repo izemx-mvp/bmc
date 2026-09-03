@@ -192,7 +192,7 @@ export function PostComposer({
         description: `${pick.description}${extra}`,
         hashtags: pick.hashtags,
         aiGenerated: true,
-        idea: brief || undefined,
+        ...(brief ? { idea: brief } : {}),
         images: d.images.length
           ? d.images
           : [
