@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ImageIcon, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
+import { ImageIcon, Lock, Pencil, Plus, Search, Sparkles, Trash2 } from "lucide-react";
 
 import { PageHeader } from "@/components/bmc/AppShell";
 import { PLATFORM_META, PlatformChip } from "@/components/bmc/branding";
