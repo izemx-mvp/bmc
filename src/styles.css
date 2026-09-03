@@ -198,8 +198,9 @@
   }
 
   ::selection {
-    background: oklch(0.66 0.14 47 / 0.35);
+    background: color-mix(in oklab, var(--primary) 28%, transparent);
   }
+
 }
 
 /* ---------- Utilities ---------- */
