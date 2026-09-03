@@ -394,3 +394,114 @@ export const emptyPost = (): Omit<Post, "id"> => ({
 
 export const newImageId = uid;
 export const isoFromToday = iso;
+
+/* ---------- Génération IA de suggestions de posts ---------- */
+
+const AI_CAPTIONS: { description: string; hashtags: string; angle: string }[] = [
+  {
+    description:
+      "⚙️ Chaque raccord BMC traverse 14 contrôles qualité avant de quitter notre atelier. La précision, c'est une culture — pas une option.",
+    hashtags: "#BMC #Precision #Cuivre #Industrie #MadeInMorocco",
+    angle: "qualité",
+  },
+  {
+    description:
+      "Du lingot au produit fini : découvrez comment nos équipes transforment le cuivre brut en composants de haute performance pour l'industrie marocaine.",
+    hashtags: "#BMC #Fabrication #Laiton #Savoirfaire",
+    angle: "savoir-faire",
+  },
+  {
+    description:
+      "Nouveau record de production ce mois-ci 🔥 Merci à nos 120 collaborateurs qui font vivre l'excellence industrielle BMC au quotidien.",
+    hashtags: "#BMC #Equipe #Production #Innovation",
+    angle: "équipe",
+  },
+  {
+    description:
+      "Usinage de précision sur plan : tolérance 0,01 mm, finitions miroir, contrôle dimensionnel systématique. Voici ce que BMC livre à l'industrie.",
+    hashtags: "#BMC #Usinage #Expertise #Industrie40",
+    angle: "expertise",
+  },
+  {
+    description:
+      "Export Europe & Afrique : nos raccords laiton franchissent les frontières. Capacité doublée, délais maîtrisés, qualité constante.",
+    hashtags: "#BMC #Export #Laiton #Maroc",
+    angle: "export",
+  },
+];
+
+const STOCK_NAMES = [
+  ["ai-usine.jpg", "Visuel généré : atelier de fabrication BMC"],
+  ["ai-pieces.jpg", "Visuel généré : pièces en cuivre usinées"],
+  ["ai-equipe.jpg", "Visuel généré : technicien en atelier"],
+  ["ai-texture.jpg", "Visuel généré : texture de cuivre brossé"],
+] as const;
+
+const OBJECTIVE_HINTS: Record<string, string> = {
+  notoriete: "faire connaître la marque BMC",
+  leads: "attirer des clients industriels",
+  recrutement: "valoriser la marque employeur",
+  engagement: "créer de l'interaction avec la communauté",
+  export: "développer la visibilité à l'international",
+  expertise: "démontrer l'expertise technique",
+};
+
+/**
+ * Construit une suggestion de post IA (brouillon) à partir de la configuration :
+ * plateformes actives, tonalité / longueur / fréquence par plateforme, et profil de marque.
+ */
+export const buildAiSuggestion = (
+  platformSettings: PlatformSettings[],
+  brand: BrandProfile,
+): Omit<Post, "id"> => {
+  const active = platformSettings.filter((p) => p.enabled);
+  const primary = active[0];
+  const tone: ToneId = primary?.tone ?? "expert";
+  const captionLength: CaptionLength = primary?.captionLength ?? "moyenne";
+  const days = primary ? (FREQUENCIES.find((f) => f.id === primary.frequency)?.days ?? 7) : 7;
+
+  const pick = AI_CAPTIONS[Math.floor(Math.random() * AI_CAPTIONS.length)] ?? AI_CAPTIONS[0]!;
+  const objectives = brand.objectives
+    .map((o) => OBJECTIVE_HINTS[o])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join(" et ");
+
+  let description = pick.description;
+  if (captionLength !== "courte") {
+    description += `\n\n${brand.name} — ${brand.services.split(".")[0]}.`;
+  }
+  if (captionLength === "longue") {
+    description += `\n\nAngle éditorial : ${pick.angle}${
+      objectives ? `, au service de ${objectives}` : ""
+    }.`;
+  }
+
+  // 1 à 3 visuels selon la plateforme principale (Instagram = carrousel)
+  const count = primary?.id === "instagram" ? 3 : primary?.id === "linkedin" ? 1 : 2;
+  const images: PostImage[] = Array.from({ length: count }, (_, i) => {
+    const [name, desc] = STOCK_NAMES[i % STOCK_NAMES.length]!;
+    return {
+      id: uid(),
+      src: STOCK_IMAGES[i % STOCK_IMAGES.length]!,
+      name,
+      description: desc,
+    };
+  });
+
+  return {
+    description,
+    images,
+    platforms: active.length ? active.map((p) => p.id) : ["instagram"],
+    date: iso(days),
+    time: primary?.id === "linkedin" ? "08:45" : "18:30",
+    status: "draft",
+    hashtags: pick.hashtags,
+    location: "Casablanca, Maroc",
+    firstComment: "",
+    tone,
+    captionLength,
+    aiGenerated: true,
+    idea: `Suggestion IA — ${pick.angle}${objectives ? ` (${objectives})` : ""}`,
+  };
+};
