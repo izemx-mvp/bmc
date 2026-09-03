@@ -89,8 +89,30 @@ function PostsPage() {
             >
               <Plus className="h-4 w-4" /> Créer un post
             </Button>
-            <Button size="lg" onClick={() => setComposer({ open: true, ai: true, editing: null })}>
-              <Sparkles className="h-4 w-4" /> Générer avec IA
+            <Button
+              size="lg"
+              disabled={generating}
+              onClick={() => {
+                setGenerating(true);
+                setTimeout(() => {
+                  addPost(buildAiSuggestion(platformSettings, brand));
+                  setGenerating(false);
+                  setQ("");
+                  setStatus("draft");
+                  setPlatform("all");
+                  setDate("");
+                }, 1400);
+              }}
+            >
+              {generating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" /> Génération…
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" /> Générer avec IA
+                </>
+              )}
             </Button>
           </>
         }
@@ -176,8 +198,8 @@ function PostsPage() {
                   <div className="flex flex-wrap items-center gap-1.5">
                     <StatusBadge status={p.status} />
                     {p.aiGenerated && (
-                      <span className="flex items-center gap-1 rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 text-[11px] text-primary backdrop-blur">
-                        <Sparkles className="h-3 w-3" /> IA
+                      <span className="flex items-center gap-1 rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 text-[11px] font-semibold text-primary backdrop-blur">
+                        <Sparkles className="h-3 w-3" /> Suggestion IA
                       </span>
                     )}
                   </div>
