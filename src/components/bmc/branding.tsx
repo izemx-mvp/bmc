@@ -1,34 +1,17 @@
 import type { PlatformId } from "@/lib/bmc-store";
+import logoMark from "@/assets/bmc-logo.png";
+import logoWhite from "@/assets/bmc-logo-white.png";
 
-export function BmcLogo({ size = 40 }: { size?: number }) {
+export function BmcLogo({ size = 40, white = false }: { size?: number; white?: boolean }) {
   return (
-    <svg
-      width={size}
+    <img
+      src={white ? logoWhite : logoMark}
+      alt="BMC — Benomar Metal Company"
+      width={size * 2.48}
       height={size}
-      viewBox="0 0 64 64"
-      fill="none"
-      aria-label="BMC"
-      role="img"
-      className="shrink-0"
-    >
-      <defs>
-        <linearGradient id="bmcCopper" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0%" stopColor="#e0a06a" />
-          <stop offset="45%" stopColor="#c1743c" />
-          <stop offset="100%" stopColor="#e6c489" />
-        </linearGradient>
-      </defs>
-      <path
-        d="M32 3 58 17.5v29L32 61 6 46.5v-29L32 3Z"
-        stroke="url(#bmcCopper)"
-        strokeWidth="2.2"
-        fill="rgba(193,116,60,0.10)"
-      />
-      <path
-        d="M22 21h11.5c4.2 0 6.9 2.1 6.9 5.5 0 2.3-1.3 4-3.4 4.7 2.6.6 4.3 2.6 4.3 5.4 0 3.9-3 6.4-7.7 6.4H22V21Zm5.3 4.2v5.1h5.2c1.9 0 3-.9 3-2.6 0-1.6-1.1-2.5-3-2.5h-5.2Zm0 9v5.6h5.7c2.1 0 3.3-1 3.3-2.8 0-1.8-1.2-2.8-3.3-2.8h-5.7Z"
-        fill="url(#bmcCopper)"
-      />
-    </svg>
+      style={{ height: size, width: "auto" }}
+      className="shrink-0 object-contain"
+    />
   );
 }
 
@@ -36,9 +19,9 @@ export function BmcWordmark({ size = 36 }: { size?: number }) {
   return (
     <div className="flex items-center gap-3">
       <BmcLogo size={size} />
-      <div className="leading-none">
-        <div className="font-display text-[15px] font-bold tracking-[0.24em] text-copper-gradient">BMC</div>
-        <div className="mt-1 text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
+      <span className="hidden h-8 w-px bg-border sm:block" />
+      <div className="hidden leading-none sm:block">
+        <div className="text-[10px] uppercase tracking-[0.22em] text-muted-foreground">
           Community AI
         </div>
       </div>
@@ -48,20 +31,17 @@ export function BmcWordmark({ size = 36 }: { size?: number }) {
 
 export const PLATFORM_META: Record<
   PlatformId,
-  { label: string; color: string; bg: string; path: ReactPath }
+  { label: string; color: string; bg: string }
 > = {
   instagram: {
     label: "Instagram",
     color: "#E1306C",
     bg: "linear-gradient(135deg,#F58529,#DD2A7B,#8134AF)",
-    path: "instagram",
   },
-  facebook: { label: "Facebook", color: "#1877F2", bg: "#1877F2", path: "facebook" },
-  linkedin: { label: "LinkedIn", color: "#0A66C2", bg: "#0A66C2", path: "linkedin" },
-  tiktok: { label: "TikTok", color: "#25F4EE", bg: "linear-gradient(135deg,#25F4EE,#111,#FE2C55)", path: "tiktok" },
+  facebook: { label: "Facebook", color: "#1877F2", bg: "#1877F2" },
+  linkedin: { label: "LinkedIn", color: "#0A66C2", bg: "#0A66C2" },
+  tiktok: { label: "TikTok", color: "#25F4EE", bg: "linear-gradient(135deg,#25F4EE,#111,#FE2C55)" },
 };
-
-type ReactPath = "instagram" | "facebook" | "linkedin" | "tiktok";
 
 export function PlatformIcon({ id, size = 16 }: { id: PlatformId; size?: number }) {
   const common = { width: size, height: size, viewBox: "0 0 24 24", "aria-hidden": true } as const;
@@ -97,7 +77,7 @@ export function PlatformChip({ id, size = 26 }: { id: PlatformId; size?: number 
   return (
     <span
       title={meta.label}
-      className="inline-flex items-center justify-center rounded-lg ring-1 ring-white/15 shadow-sm"
+      className="inline-flex items-center justify-center rounded-lg ring-1 ring-black/10 shadow-sm"
       style={{ width: size, height: size, background: meta.bg }}
     >
       <PlatformIcon id={id} size={Math.round(size * 0.58)} />
