@@ -74,7 +74,9 @@ export function PostComposer({
   editing?: Post | null;
   aiMode?: boolean;
 }) {
-  const { addPost, updatePost, accounts } = useBmc();
+  const { addPost, updatePost, platformSettings, brand } = useBmc();
+  const readOnly = editing?.status === "published";
+
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(emptyPost());
   const [imageCount, setImageCount] = useState(1);
