@@ -869,7 +869,21 @@ export function PostComposer({
                       Description
                     </p>
                     <p className="mt-1 line-clamp-4 text-[13px]">{draft.description}</p>
+                    {draft.platforms
+                      .filter((p) => draft.platformCaptions?.[p] !== undefined)
+                      .map((p) => (
+                        <div key={p} className="mt-2 rounded-lg border border-border/60 p-2">
+                          <p className="flex items-center gap-1.5 text-[11px] text-primary">
+                            <PlatformChip id={p} size={14} /> {PLATFORM_META[p].label} — version
+                            personnalisée
+                          </p>
+                          <p className="mt-1 line-clamp-3 text-[12px]">
+                            {draft.platformCaptions?.[p]}
+                          </p>
+                        </div>
+                      ))}
                   </div>
+
                   <div>
                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       Plateformes
