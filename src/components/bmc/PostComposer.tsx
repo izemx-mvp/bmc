@@ -145,13 +145,19 @@ export function PostComposer({
     });
   };
 
-  const addStock = () => {
-    const src = STOCK_IMAGES[draft.images.length % STOCK_IMAGES.length] ?? STOCK_IMAGES[0]!;
-    setDraft((d) => ({
-      ...d,
-      images: [...d.images, { id: newImageId(), src, name: `visuel-bmc-${d.images.length + 1}.jpg` }],
-    }));
-  };
+  const captionFor = (p: PlatformId) => draft.platformCaptions?.[p] ?? draft.description;
+
+  const setCaptionFor = (p: PlatformId, value: string) =>
+    setDraft((d) => ({ ...d, platformCaptions: { ...(d.platformCaptions ?? {}), [p]: value } }));
+
+  const resetCaptionFor = (p: PlatformId) =>
+    setDraft((d) => {
+      const next = { ...(d.platformCaptions ?? {}) };
+      delete next[p];
+      return { ...d, platformCaptions: next };
+    });
+
+
 
   const removeImage = (id: string) =>
     setDraft((d) => ({ ...d, images: d.images.filter((i) => i.id !== id) }));
