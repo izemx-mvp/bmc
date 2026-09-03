@@ -849,7 +849,7 @@ export function PostComposer({
                     Modifier
                   </Button>
                   <Button
-                    disabled={!draft.platforms.length || publishing}
+                    disabled={readOnly || !draft.platforms.length || publishing}
                     onClick={() => submit("scheduled")}
                   >
                     {publishing ? (
@@ -857,15 +857,20 @@ export function PostComposer({
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
-                    Programmer
+                    {editing?.status === "scheduled" ? "Replanifier" : "Programmer"}
                   </Button>
                   <Button
                     variant="secondary"
-                    disabled={!draft.platforms.length || publishing}
+                    disabled={readOnly || !draft.platforms.length || publishing}
                     onClick={() => submit("published")}
                   >
                     Publier maintenant
                   </Button>
+                  {readOnly && (
+                    <p className="text-center text-[11px] text-muted-foreground">
+                      Publication déjà diffusée — lecture seule.
+                    </p>
+                  )}
                 </div>
               </aside>
             </div>
