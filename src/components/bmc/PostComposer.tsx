@@ -632,7 +632,7 @@ export function PostComposer({
                   <Label>Plateformes de diffusion</Label>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => {
-                      const account = accounts.find((a) => a.id === p);
+                      const account = platformSettings.find((a) => a.id === p);
                       const selected = draft.platforms.includes(p);
                       return (
                         <button
