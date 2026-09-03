@@ -31,13 +31,24 @@ import {
 import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  CAPTION_LENGTHS,
   STOCK_IMAGES,
+  TONES,
   emptyPost,
   newImageId,
   useBmc,
+  type CaptionLength,
   type PlatformId,
   type Post,
   type PostImage,
+  type ToneId,
 } from "@/lib/bmc-store";
 import { PLATFORM_META, PlatformChip, PlatformIcon, BmcLogo } from "./branding";
 
@@ -74,7 +85,9 @@ export function PostComposer({
   editing?: Post | null;
   aiMode?: boolean;
 }) {
-  const { addPost, updatePost, accounts } = useBmc();
+  const { addPost, updatePost, platformSettings, brand } = useBmc();
+  const readOnly = editing?.status === "published";
+
   const [step, setStep] = useState(0);
   const [draft, setDraft] = useState<Draft>(emptyPost());
   const [imageCount, setImageCount] = useState(1);
@@ -163,16 +176,38 @@ export function PostComposer({
     setAiLoading(true);
     setTimeout(() => {
       const pick = AI_DRAFTS[Math.floor(Math.random() * AI_DRAFTS.length)] ?? AI_DRAFTS[0]!;
+      const tone = TONES.find((t) => t.id === draft.tone);
+      const brief = aiPrompt.trim();
+      const extra =
+        draft.captionLength === "courte"
+          ? ""
+          : `\n\n${brand.name} — ${brand.services.split(".")[0]}.` +
+            (draft.captionLength === "longue"
+              ? `\n\nAngle éditorial : ${tone?.hint ?? "expertise industrielle"}.${
+                  brief ? ` Brief : ${brief}.` : ""
+                }`
+              : "");
       setDraft((d) => ({
         ...d,
-        description: pick.description,
+        description: `${pick.description}${extra}`,
         hashtags: pick.hashtags,
         aiGenerated: true,
+        ...(brief ? { idea: brief } : {}),
         images: d.images.length
           ? d.images
           : [
-              { id: newImageId(), src: STOCK_IMAGES[0]!, name: "ai-visuel-1.jpg" },
-              { id: newImageId(), src: STOCK_IMAGES[1]!, name: "ai-visuel-2.jpg" },
+              {
+                id: newImageId(),
+                src: STOCK_IMAGES[0]!,
+                name: "ai-visuel-1.jpg",
+                description: "Visuel généré : atelier BMC",
+              },
+              {
+                id: newImageId(),
+                src: STOCK_IMAGES[1]!,
+                name: "ai-visuel-2.jpg",
+                description: "Visuel généré : pièces en cuivre",
+              },
             ],
       }));
       setImageCount(2);
@@ -180,6 +215,8 @@ export function PostComposer({
       setAiDone(true);
     }, 1400);
   };
+
+
 
   const submit = (status: "draft" | "scheduled" | "published") => {
     setPublishing(true);
@@ -494,9 +531,79 @@ export function PostComposer({
                   </div>
                   <ImageGrid />
                 </div>
+
+                {draft.images.length > 0 && (
+                  <div className="panel p-4">
+                    <p className="font-display text-sm font-semibold">Description des images</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Précisez ce que montre chaque visuel : l'IA et l'accessibilité s'en servent.
+                    </p>
+                    <div className="mt-3 space-y-2.5">
+                      {draft.images.map((im, i) => (
+                        <div key={im.id} className="flex items-center gap-3">
+                          <img
+                            src={im.src}
+                            alt={im.name}
+                            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                            loading="lazy"
+                          />
+                          <Input
+                            value={im.description ?? ""}
+                            onChange={(e) =>
+                              setDraft((d) => ({
+                                ...d,
+                                images: d.images.map((x) =>
+                                  x.id === im.id ? { ...x, description: e.target.value } : x,
+                                ),
+                              }))
+                            }
+                            placeholder={`Description du visuel ${String(i + 1).padStart(2, "0")}`}
+                            className="bg-surface/60"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
 
               <section className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="tone-draft">Tonalité</Label>
+                    <Select value={draft.tone} onValueChange={(v) => set({ tone: v as ToneId })}>
+                      <SelectTrigger id="tone-draft" className="mt-2 bg-surface/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TONES.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="len-draft">Longueur de l'article</Label>
+                    <Select
+                      value={draft.captionLength}
+                      onValueChange={(v) => set({ captionLength: v as CaptionLength })}
+                    >
+                      <SelectTrigger id="len-draft" className="mt-2 bg-surface/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAPTION_LENGTHS.map((l) => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.label} — {l.hint}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="desc">Description</Label>
                   <Textarea
@@ -619,7 +726,7 @@ export function PostComposer({
                   <Label>Plateformes de diffusion</Label>
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => {
-                      const account = accounts.find((a) => a.id === p);
+                      const account = platformSettings.find((a) => a.id === p);
                       const selected = draft.platforms.includes(p);
                       return (
                         <button
@@ -640,7 +747,7 @@ export function PostComposer({
                           <span className="min-w-0 flex-1">
                             <span className="block text-sm font-medium">{PLATFORM_META[p].label}</span>
                             <span className="block truncate text-[11px] text-muted-foreground">
-                              {account?.connected ? account.handle : "Non connecté"}
+                              {account?.enabled ? account.handle : "Plateforme désactivée"}
                             </span>
                           </span>
                           <span
@@ -742,7 +849,7 @@ export function PostComposer({
                     Modifier
                   </Button>
                   <Button
-                    disabled={!draft.platforms.length || publishing}
+                    disabled={readOnly || !draft.platforms.length || publishing}
                     onClick={() => submit("scheduled")}
                   >
                     {publishing ? (
@@ -750,15 +857,20 @@ export function PostComposer({
                     ) : (
                       <Send className="h-4 w-4" />
                     )}
-                    Programmer
+                    {editing?.status === "scheduled" ? "Replanifier" : "Programmer"}
                   </Button>
                   <Button
                     variant="secondary"
-                    disabled={!draft.platforms.length || publishing}
+                    disabled={readOnly || !draft.platforms.length || publishing}
                     onClick={() => submit("published")}
                   >
                     Publier maintenant
                   </Button>
+                  {readOnly && (
+                    <p className="text-center text-[11px] text-muted-foreground">
+                      Publication déjà diffusée — lecture seule.
+                    </p>
+                  )}
                 </div>
               </aside>
             </div>
@@ -775,7 +887,11 @@ export function PostComposer({
               <ArrowLeft className="h-4 w-4" /> {step === 0 ? "Annuler" : "Retour"}
             </Button>
             <div className="flex items-center gap-2">
-              <Button variant="outline" onClick={() => submit("draft")} disabled={publishing}>
+              <Button
+                variant="outline"
+                onClick={() => submit("draft")}
+                disabled={readOnly || publishing}
+              >
                 Enregistrer en brouillon
               </Button>
               {step < 2 && (
