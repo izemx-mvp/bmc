@@ -176,16 +176,38 @@ export function PostComposer({
     setAiLoading(true);
     setTimeout(() => {
       const pick = AI_DRAFTS[Math.floor(Math.random() * AI_DRAFTS.length)] ?? AI_DRAFTS[0]!;
+      const tone = TONES.find((t) => t.id === draft.tone);
+      const brief = aiPrompt.trim();
+      const extra =
+        draft.captionLength === "courte"
+          ? ""
+          : `\n\n${brand.name} — ${brand.services.split(".")[0]}.` +
+            (draft.captionLength === "longue"
+              ? `\n\nAngle éditorial : ${tone?.hint ?? "expertise industrielle"}.${
+                  brief ? ` Brief : ${brief}.` : ""
+                }`
+              : "");
       setDraft((d) => ({
         ...d,
-        description: pick.description,
+        description: `${pick.description}${extra}`,
         hashtags: pick.hashtags,
         aiGenerated: true,
+        idea: brief || undefined,
         images: d.images.length
           ? d.images
           : [
-              { id: newImageId(), src: STOCK_IMAGES[0]!, name: "ai-visuel-1.jpg" },
-              { id: newImageId(), src: STOCK_IMAGES[1]!, name: "ai-visuel-2.jpg" },
+              {
+                id: newImageId(),
+                src: STOCK_IMAGES[0]!,
+                name: "ai-visuel-1.jpg",
+                description: "Visuel généré : atelier BMC",
+              },
+              {
+                id: newImageId(),
+                src: STOCK_IMAGES[1]!,
+                name: "ai-visuel-2.jpg",
+                description: "Visuel généré : pièces en cuivre",
+              },
             ],
       }));
       setImageCount(2);
@@ -193,6 +215,8 @@ export function PostComposer({
       setAiDone(true);
     }, 1400);
   };
+
+
 
   const submit = (status: "draft" | "scheduled" | "published") => {
     setPublishing(true);
