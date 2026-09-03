@@ -34,7 +34,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <BmcWordmark size={34} />
           </Link>
 
-          <nav className="ml-2 flex items-center gap-1 overflow-x-auto">
+          <nav className="ml-2 flex items-center gap-1">
             {NAV.map((item) => {
               const active =
                 item.to === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith("/cm");
