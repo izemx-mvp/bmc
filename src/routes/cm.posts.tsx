@@ -172,7 +172,14 @@ function PostsPage() {
                   </div>
                 )}
                 <div className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
-                  <StatusBadge status={p.status} />
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <StatusBadge status={p.status} />
+                    {p.aiGenerated && (
+                      <span className="flex items-center gap-1 rounded-full border border-primary/50 bg-primary/10 px-2 py-0.5 text-[11px] text-primary backdrop-blur">
+                        <Sparkles className="h-3 w-3" /> IA
+                      </span>
+                    )}
+                  </div>
                   <span className="flex items-center gap-1 rounded-full bg-background/75 px-2 py-0.5 text-[11px] backdrop-blur">
                     <ImageIcon className="h-3 w-3" /> {p.images.length}
                   </span>
@@ -195,7 +202,19 @@ function PostsPage() {
                     className="flex-1"
                     onClick={() => setComposer({ open: true, ai: false, editing: p })}
                   >
-                    <Pencil className="h-3.5 w-3.5" /> Modifier
+                    {p.status === "published" ? (
+                      <>
+                        <Lock className="h-3.5 w-3.5" /> Consulter
+                      </>
+                    ) : p.status === "scheduled" ? (
+                      <>
+                        <Pencil className="h-3.5 w-3.5" /> Modifier / Replanifier
+                      </>
+                    ) : (
+                      <>
+                        <Pencil className="h-3.5 w-3.5" /> Modifier
+                      </>
+                    )}
                   </Button>
                   <Button
                     size="sm"
