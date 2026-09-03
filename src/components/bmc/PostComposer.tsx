@@ -507,9 +507,79 @@ export function PostComposer({
                   </div>
                   <ImageGrid />
                 </div>
+
+                {draft.images.length > 0 && (
+                  <div className="panel p-4">
+                    <p className="font-display text-sm font-semibold">Description des images</p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Précisez ce que montre chaque visuel : l'IA et l'accessibilité s'en servent.
+                    </p>
+                    <div className="mt-3 space-y-2.5">
+                      {draft.images.map((im, i) => (
+                        <div key={im.id} className="flex items-center gap-3">
+                          <img
+                            src={im.src}
+                            alt={im.name}
+                            className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                            loading="lazy"
+                          />
+                          <Input
+                            value={im.description ?? ""}
+                            onChange={(e) =>
+                              setDraft((d) => ({
+                                ...d,
+                                images: d.images.map((x) =>
+                                  x.id === im.id ? { ...x, description: e.target.value } : x,
+                                ),
+                              }))
+                            }
+                            placeholder={`Description du visuel ${String(i + 1).padStart(2, "0")}`}
+                            className="bg-surface/60"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </section>
 
               <section className="space-y-5">
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <Label htmlFor="tone-draft">Tonalité</Label>
+                    <Select value={draft.tone} onValueChange={(v) => set({ tone: v as ToneId })}>
+                      <SelectTrigger id="tone-draft" className="mt-2 bg-surface/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TONES.map((t) => (
+                          <SelectItem key={t.id} value={t.id}>
+                            {t.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="len-draft">Longueur de l'article</Label>
+                    <Select
+                      value={draft.captionLength}
+                      onValueChange={(v) => set({ captionLength: v as CaptionLength })}
+                    >
+                      <SelectTrigger id="len-draft" className="mt-2 bg-surface/60">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {CAPTION_LENGTHS.map((l) => (
+                          <SelectItem key={l.id} value={l.id}>
+                            {l.label} — {l.hint}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <div>
                   <Label htmlFor="desc">Description</Label>
                   <Textarea
