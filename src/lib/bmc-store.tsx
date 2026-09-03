@@ -79,6 +79,9 @@ export type Post = {
   captionLength: CaptionLength;
   aiGenerated?: boolean;
   idea?: string;
+  /** Légende personnalisée par plateforme (sinon `description`). */
+  platformCaptions?: Partial<Record<PlatformId, string>>;
+
 };
 
 export type PlatformSettings = {

@@ -6,7 +6,7 @@ import {
   Check,
   Clock,
   Heart,
-  ImageIcon,
+  
   Loader2,
   MessageCircle,
   Minus,
@@ -145,13 +145,19 @@ export function PostComposer({
     });
   };
 
-  const addStock = () => {
-    const src = STOCK_IMAGES[draft.images.length % STOCK_IMAGES.length] ?? STOCK_IMAGES[0]!;
-    setDraft((d) => ({
-      ...d,
-      images: [...d.images, { id: newImageId(), src, name: `visuel-bmc-${d.images.length + 1}.jpg` }],
-    }));
-  };
+  const captionFor = (p: PlatformId) => draft.platformCaptions?.[p] ?? draft.description;
+
+  const setCaptionFor = (p: PlatformId, value: string) =>
+    setDraft((d) => ({ ...d, platformCaptions: { ...(d.platformCaptions ?? {}), [p]: value } }));
+
+  const resetCaptionFor = (p: PlatformId) =>
+    setDraft((d) => {
+      const next = { ...(d.platformCaptions ?? {}) };
+      delete next[p];
+      return { ...d, platformCaptions: next };
+    });
+
+
 
   const removeImage = (id: string) =>
     setDraft((d) => ({ ...d, images: d.images.filter((i) => i.id !== id) }));
@@ -502,10 +508,8 @@ export function PostComposer({
                     <Button variant="outline" size="sm" onClick={() => fileRef.current?.click()}>
                       Choisir des fichiers
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={addStock}>
-                      <ImageIcon className="h-3.5 w-3.5" /> Banque BMC
-                    </Button>
                   </div>
+
                   <input
                     ref={fileRef}
                     type="file"
@@ -534,10 +538,14 @@ export function PostComposer({
 
                 {draft.images.length > 0 && (
                   <div className="panel p-4">
-                    <p className="font-display text-sm font-semibold">Description des images</p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Précisez ce que montre chaque visuel : l'IA et l'accessibilité s'en servent.
+                    <p className="font-display text-sm font-semibold">
+                      Description des images{" "}
+                      <span className="text-xs font-normal text-muted-foreground">(optionnel)</span>
                     </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Décrivez le visuel souhaité : l'IA s'en sert pour générer l'image.
+                    </p>
+
                     <div className="mt-3 space-y-2.5">
                       {draft.images.map((im, i) => (
                         <div key={im.id} className="flex items-center gap-3">
@@ -661,23 +669,46 @@ export function PostComposer({
             <div className="grid animate-rise gap-6 lg:grid-cols-[minmax(0,420px)_1fr]">
               <div>
                 <div className="mb-3 flex flex-wrap gap-2">
-                  {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => (
-                    <button
-                      key={p}
-                      type="button"
-                      onClick={() => setPreviewPlatform(p)}
-                      className={cn(
-                        "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all duration-300",
-                        previewPlatform === p
-                          ? "border-primary/60 bg-surface-3 text-foreground"
-                          : "border-border text-muted-foreground hover:text-foreground",
-                      )}
-                    >
-                      <PlatformChip id={p} size={18} /> {PLATFORM_META[p].label}
-                    </button>
-                  ))}
+                  {(Object.keys(PLATFORM_META) as PlatformId[]).map((p) => {
+                    const selected = draft.platforms.includes(p);
+                    return (
+                      <button
+                        key={p}
+                        type="button"
+                        onClick={() => setPreviewPlatform(p)}
+                        className={cn(
+                          "flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all duration-300",
+                          previewPlatform === p
+                            ? "border-primary/60 bg-surface-3 text-foreground"
+                            : "border-border text-muted-foreground hover:text-foreground",
+                        )}
+                      >
+                        <PlatformChip id={p} size={18} /> {PLATFORM_META[p].label}
+                        {selected && <Check className="h-3 w-3 text-primary" />}
+                        {draft.platformCaptions?.[p] !== undefined && (
+                          <span className="rounded-full bg-primary/15 px-1.5 text-[10px] text-primary">
+                            perso
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
                 </div>
-                <PreviewCard draft={draft} platform={previewPlatform} onRemove={removeImage} />
+                <label className="mb-3 flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={draft.platforms.includes(previewPlatform)}
+                    onChange={() => togglePlatform(previewPlatform)}
+                    className="accent-[var(--primary)]"
+                  />
+                  Diffuser sur {PLATFORM_META[previewPlatform].label}
+                </label>
+                <PreviewCard
+                  draft={draft}
+                  platform={previewPlatform}
+                  caption={captionFor(previewPlatform)}
+                  onRemove={removeImage}
+                />
               </div>
 
               <div className="space-y-5">
@@ -688,14 +719,32 @@ export function PostComposer({
                   </div>
                 </div>
                 <div>
-                  <Label htmlFor="desc2">Description</Label>
+                  <div className="flex items-center justify-between gap-3">
+                    <Label htmlFor="desc2">
+                      Description — {PLATFORM_META[previewPlatform].label}
+                    </Label>
+                    {draft.platformCaptions?.[previewPlatform] !== undefined && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => resetCaptionFor(previewPlatform)}
+                      >
+                        Réutiliser le texte commun
+                      </Button>
+                    )}
+                  </div>
                   <Textarea
                     id="desc2"
-                    value={draft.description}
-                    onChange={(e) => set({ description: e.target.value })}
+                    value={captionFor(previewPlatform)}
+                    onChange={(e) => setCaptionFor(previewPlatform, e.target.value)}
                     className="mt-2 min-h-36 bg-surface/60"
                   />
+                  <p className="mt-1.5 text-[11px] text-muted-foreground">
+                    Ce texte ne s'applique qu'à {PLATFORM_META[previewPlatform].label}. Les autres
+                    plateformes gardent leur propre version.
+                  </p>
                 </div>
+
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div>
                     <Label htmlFor="tags2">Hashtags</Label>
@@ -820,7 +869,21 @@ export function PostComposer({
                       Description
                     </p>
                     <p className="mt-1 line-clamp-4 text-[13px]">{draft.description}</p>
+                    {draft.platforms
+                      .filter((p) => draft.platformCaptions?.[p] !== undefined)
+                      .map((p) => (
+                        <div key={p} className="mt-2 rounded-lg border border-border/60 p-2">
+                          <p className="flex items-center gap-1.5 text-[11px] text-primary">
+                            <PlatformChip id={p} size={14} /> {PLATFORM_META[p].label} — version
+                            personnalisée
+                          </p>
+                          <p className="mt-1 line-clamp-3 text-[12px]">
+                            {draft.platformCaptions?.[p]}
+                          </p>
+                        </div>
+                      ))}
                   </div>
+
                   <div>
                     <p className="text-[11px] uppercase tracking-wider text-muted-foreground">
                       Plateformes
@@ -910,16 +973,20 @@ export function PostComposer({
 export function PreviewCard({
   draft,
   platform,
+  caption,
   onRemove,
 }: {
   draft: Omit<Post, "id">;
   platform: PlatformId;
+  caption?: string;
   onRemove?: (id: string) => void;
 }) {
   const [active, setActive] = useState(0);
   const meta = PLATFORM_META[platform];
   const images = draft.images;
   const current = images[Math.min(active, Math.max(0, images.length - 1))];
+  const text = caption ?? draft.platformCaptions?.[platform] ?? draft.description;
+
 
   return (
     <div className="panel overflow-hidden">
@@ -986,8 +1053,9 @@ export function PreviewCard({
           <Send className="h-4 w-4" />
         </div>
         <p className="whitespace-pre-wrap text-[13px] leading-relaxed">
-          {draft.description || "Votre description apparaîtra ici."}
+          {text || "Votre description apparaîtra ici."}
         </p>
+
         {draft.hashtags && <p className="text-[13px] text-primary">{draft.hashtags}</p>}
         {draft.firstComment && (
           <p className="border-t border-border/60 pt-2 text-[12px] text-muted-foreground">
