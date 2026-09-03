@@ -142,7 +142,21 @@ export function PostComposer({
         }),
     );
     Promise.all(read).then((imgs) => {
-      setDraft((d) => ({ ...d, images: [...d.images, ...imgs] }));
+      setDraft((d) => {
+        const start = d.images.length;
+        const merged = imgs.map((im, k) => {
+          const desc = pendingDesc[start + k]?.trim();
+          return desc ? { ...im, description: desc } : im;
+        });
+        return { ...d, images: [...d.images, ...merged] };
+      });
+      setPendingDesc((prev) => {
+        const next = { ...prev };
+        Object.keys(next).forEach((k) => {
+          if (Number(k) < draft.images.length + imgs.length) delete next[Number(k)];
+        });
+        return next;
+      });
       setImageCount((c) => Math.max(c, 1));
     });
   };
