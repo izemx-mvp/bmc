@@ -1,280 +1,192 @@
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+
 import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  useState,
-  type ReactNode,
-} from "react";
+  isPast,
+  isoFromToday,
+  nextGenerationDate,
+  scheduleDates,
+  toIso,
+  type Ad,
+  type AdStatus,
+  type AiUsageEvent,
+  type BrandProfile,
+  type Campaign,
+  type CampaignStatus,
+  type Contact,
+  type LangId,
+  type LibraryImage,
+  type PlatformId,
+  type PlatformSettings,
+  type Post,
+  type PostDraft,
+  type Video,
+} from "./bmc-model";
+import {
+  SEED_ADS,
+  SEED_AI_USAGE,
+  SEED_BRAND,
+  SEED_CAMPAIGNS,
+  SEED_CONTACTS,
+  SEED_LIBRARY,
+  SEED_PLATFORMS,
+  SEED_POSTS,
+  SEED_VIDEOS,
+  STOCK_IMAGES,
+} from "./bmc-seed";
 
-import factory from "@/assets/bmc-factory.jpg";
-import components from "@/assets/bmc-components.jpg";
-import engineer from "@/assets/bmc-engineer.jpg";
-import texture from "@/assets/bmc-copper-texture.jpg";
-
-export const STOCK_IMAGES = [factory, components, engineer, texture];
-
-export type PlatformId = "instagram" | "facebook" | "linkedin" | "tiktok";
-export type PostStatus = "draft" | "scheduled" | "published";
-
-export type ToneId =
-  | "expert"
-  | "inspirant"
-  | "proche"
-  | "promotionnel"
-  | "educatif"
-  | "corporate";
-
-export const TONES: { id: ToneId; label: string; hint: string }[] = [
-  { id: "expert", label: "Expert & technique", hint: "Précision, chiffres, savoir-faire" },
-  { id: "corporate", label: "Corporate", hint: "Institutionnel et rassurant" },
-  { id: "inspirant", label: "Inspirant", hint: "Vision, ambition, fierté" },
-  { id: "proche", label: "Proche & humain", hint: "Équipes, coulisses, émotion" },
-  { id: "promotionnel", label: "Promotionnel", hint: "Offres, produits, call-to-action" },
-  { id: "educatif", label: "Éducatif", hint: "Pédagogie, explications, conseils" },
-];
-
-export type CaptionLength = "courte" | "moyenne" | "longue";
-
-export const CAPTION_LENGTHS: { id: CaptionLength; label: string; hint: string }[] = [
-  { id: "courte", label: "Courte", hint: "~300 caractères" },
-  { id: "moyenne", label: "Moyenne", hint: "~700 caractères" },
-  { id: "longue", label: "Longue", hint: "~1500 caractères" },
-];
-
-export type FrequencyId = "quotidienne" | "3x" | "hebdo" | "bimensuelle" | "mensuelle";
-
-export const FREQUENCIES: { id: FrequencyId; label: string; days: number }[] = [
-  { id: "quotidienne", label: "Quotidienne", days: 1 },
-  { id: "3x", label: "3× par semaine", days: 2 },
-  { id: "hebdo", label: "Hebdomadaire", days: 7 },
-  { id: "bimensuelle", label: "Bimensuelle", days: 15 },
-  { id: "mensuelle", label: "Mensuelle", days: 30 },
-];
-
-export const OBJECTIVES: { id: string; label: string; hint: string }[] = [
-  { id: "notoriete", label: "Notoriété de marque", hint: "Faire connaître BMC" },
-  { id: "leads", label: "Génération de leads", hint: "Attirer des clients industriels" },
-  { id: "recrutement", label: "Marque employeur", hint: "Attirer les talents" },
-  { id: "engagement", label: "Engagement communauté", hint: "Interactions et fidélité" },
-  { id: "export", label: "Développement export", hint: "Visibilité à l'international" },
-  { id: "expertise", label: "Autorité & expertise", hint: "Contenus techniques de référence" },
-];
-
-export type PostImage = { id: string; src: string; name: string; description?: string };
-
-export type Post = {
-  id: string;
-  description: string;
-  images: PostImage[];
-  platforms: PlatformId[];
-  date: string; // YYYY-MM-DD
-  time: string; // HH:mm
-  status: PostStatus;
-  hashtags: string;
-  location: string;
-  firstComment: string;
-  tone: ToneId;
-  captionLength: CaptionLength;
-  aiGenerated?: boolean;
-  idea?: string;
-  /** Légende personnalisée par plateforme (sinon `description`). */
-  platformCaptions?: Partial<Record<PlatformId, string>>;
-
-};
-
-export type PlatformSettings = {
-  id: PlatformId;
-  enabled: boolean;
-  handle: string;
-  tone: ToneId;
-  postsToGenerate: number;
-  captionLength: CaptionLength;
-  frequency: FrequencyId;
-};
-
-export type BrandProfile = {
-  name: string;
-  logo: string | null;
-  services: string;
-  objectives: string[];
-};
+export * from "./bmc-model";
+export { STOCK_IMAGES, IMG, TELEGRAM_SUBSCRIBERS } from "./bmc-seed";
 
 const uid = () => Math.random().toString(36).slice(2, 10);
+export const newId = uid;
 
-const iso = (offsetDays: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + offsetDays);
-  return d.toISOString().slice(0, 10);
+/* ------------------------------------------------------------------ */
+/* Génération IA (simulée) à partir de la Configuration               */
+/* ------------------------------------------------------------------ */
+
+const IDEAS: Record<LangId, { text: string; tags: string; angle: string }[]> = {
+  fr: [
+    { text: "Chaque raccord BMC traverse 14 contrôles qualité avant de quitter l'atelier. La précision est une culture, pas une option.", tags: "#BMC #Qualité #Laiton #MadeInMorocco", angle: "Qualité" },
+    { text: "Du lingot au produit fini : nos équipes transforment le cuivre brut en composants haute performance pour le bâtiment et l'industrie.", tags: "#BMC #Fabrication #Cuivre #Savoirfaire", angle: "Savoir-faire" },
+    { text: "Usinage sur plan : tolérance 0,01 mm, finitions miroir, contrôle dimensionnel systématique. Voilà ce que BMC livre à ses clients.", tags: "#BMC #Usinage #Précision", angle: "Expertise" },
+    { text: "Export Europe & Afrique : nos raccords laiton franchissent les frontières avec des délais maîtrisés et une qualité constante.", tags: "#BMC #Export #Laiton", angle: "Export" },
+    { text: "Rencontre avec nos fondeurs : le geste, la chaleur et la maîtrise du métal, au cœur de chaque pièce BMC.", tags: "#BMC #Fonderie #Équipe", angle: "Coulisses" },
+  ],
+  ar: [
+    { text: "كل وصلة من BMC تمر بـ 14 مراقبة للجودة قبل مغادرة الورشة. الدقة عندنا ثقافة.", tags: "#BMC #الجودة #صنع_في_المغرب", angle: "الجودة" },
+    { text: "من السبيكة إلى المنتج النهائي: فرقنا تحول النحاس إلى مكونات عالية الأداء.", tags: "#BMC #النحاس #صناعة", angle: "الخبرة" },
+    { text: "التصدير نحو أوروبا وإفريقيا: وصلاتنا النحاسية تعبر الحدود بجودة ثابتة.", tags: "#BMC #تصدير", angle: "التصدير" },
+  ],
+  darija: [
+    { text: "Kol raccord dyal BMC kaydouz 14 contrôle qualité 9bel ma ykhroj mn l'atelier. Dqa 3andna machi option.", tags: "#BMC #Qualité #MadeInMorocco", angle: "Qualité" },
+    { text: "Mn l'lingot l'produit fini : l'équipe dyalna katbeddel n'nhas l'pièces dyal l'qualité.", tags: "#BMC #Nhas #Sna3a", angle: "Savoir-faire" },
+    { text: "Chouf m3ana kifach kaytsabbo l'métal f l'fonderie dyal BMC 🔥", tags: "#BMC #Fonderie #Coulisses", angle: "Coulisses" },
+  ],
+  en: [
+    { text: "Every BMC fitting passes 14 quality checks before leaving our workshop. Precision is a culture, not an option.", tags: "#BMC #Quality #Brass #MadeInMorocco", angle: "Quality" },
+    { text: "From ingot to finished part: our teams turn raw copper into high-performance components for construction and industry.", tags: "#BMC #Manufacturing #Copper", angle: "Know-how" },
+    { text: "Exporting to Europe & Africa: BMC brass fittings, consistent quality and reliable lead times.", tags: "#BMC #Export #Brass", angle: "Export" },
+  ],
 };
 
-const img = (src: string, name: string, description?: string): PostImage => ({
-  id: uid(),
-  src,
-  name,
-  ...(description ? { description } : {}),
-});
-
-const SEED_POSTS: Post[] = [
-  {
-    id: uid(),
-    description:
-      "Précision au micron. Nos ateliers d'usinage BMC façonnent chaque pièce en cuivre avec une tolérance de 0,01 mm. La qualité ne se négocie pas.",
-    images: [
-      img(components, "usinage-01.jpg", "Gros plan sur une pièce en cuivre usinée"),
-      img(texture, "cuivre-02.jpg", "Texture de cuivre brossé"),
-    ],
-    platforms: ["instagram", "linkedin"],
-    date: iso(2),
-    time: "18:30",
-    status: "scheduled",
-    hashtags: "#BMC #Usinage #Cuivre #MadeInMorocco",
-    location: "Casablanca, Maroc",
-    firstComment: "Découvrez notre catalogue complet sur bmc.ma",
-    tone: "expert",
-    captionLength: "moyenne",
-  },
-  {
-    id: uid(),
-    description:
-      "Derrière chaque pièce, une équipe. Rencontre avec Karim, 12 ans d'expertise sur nos lignes de fabrication.",
-    images: [img(engineer, "equipe-karim.jpg", "Portrait d'un technicien en atelier")],
-    platforms: ["facebook", "linkedin"],
-    date: iso(-3),
-    time: "09:00",
-    status: "published",
-    hashtags: "#BMC #Savoirfaire #Industrie",
-    location: "Casablanca, Maroc",
-    firstComment: "",
-    tone: "proche",
-    captionLength: "courte",
-  },
-  {
-    id: uid(),
-    description:
-      "Nouvelle ligne de production inaugurée : +40 % de capacité sur les raccords laiton. L'industrie marocaine avance.",
-    images: [
-      img(factory, "ligne-production.jpg", "Vue large de la ligne de production"),
-      img(components, "raccords.jpg", "Raccords en laiton finis"),
-      img(texture, "finition.jpg", "Détail de finition"),
-    ],
-    platforms: ["instagram", "facebook", "linkedin"],
-    date: iso(5),
-    time: "11:15",
-    status: "scheduled",
-    hashtags: "#BMC #Production #Innovation",
-    location: "Zone industrielle Aïn Sebaâ",
-    firstComment: "",
-    tone: "corporate",
-    captionLength: "moyenne",
-  },
-  {
-    id: uid(),
-    description: "Idée de contenu : série 'Anatomie d'une pièce' — zoom macro sur nos finitions laiton.",
-    images: [img(texture, "macro-laiton.jpg", "Macro laiton poli")],
-    platforms: ["instagram"],
-    date: iso(9),
-    time: "17:00",
-    status: "draft",
-    hashtags: "#BMC #Laiton",
-    location: "",
-    firstComment: "",
-    tone: "educatif",
-    captionLength: "courte",
-  },
-  {
-    id: uid(),
-    description:
-      "Reportage : 48 heures dans notre atelier de fabrication. Étincelles, précision et passion du métal.",
-    images: [img(factory, "atelier-48h.jpg"), img(engineer, "controle.jpg")],
-    platforms: ["tiktok", "instagram"],
-    date: iso(-8),
-    time: "20:00",
-    status: "published",
-    hashtags: "#BMC #Behindthescenes #Metal",
-    location: "Casablanca, Maroc",
-    firstComment: "",
-    tone: "inspirant",
-    captionLength: "courte",
-  },
-  {
-    id: uid(),
-    description:
-      "Certification ISO renouvelée. Un engagement quotidien envers nos clients industriels partout au Maroc.",
-    images: [img(components, "iso-certification.jpg")],
-    platforms: ["linkedin"],
-    date: iso(1),
-    time: "08:45",
-    status: "scheduled",
-    hashtags: "#BMC #ISO #Qualité",
-    location: "",
-    firstComment: "",
-    tone: "corporate",
-    captionLength: "moyenne",
-  },
+const IMAGE_PROMPTS = [
+  "Raccords laiton en studio, lumière chaude",
+  "Atelier de fonderie, coulée du cuivre",
+  "Technicien BMC contrôlant une pièce",
+  "Ligne de production BMC, vue large",
+  "Macro sur une finition laiton poli",
 ];
 
-const SEED_PLATFORMS: PlatformSettings[] = [
-  {
-    id: "instagram",
-    enabled: true,
-    handle: "@bmc.maroc",
-    tone: "inspirant",
-    postsToGenerate: 4,
-    captionLength: "courte",
-    frequency: "3x",
-  },
-  {
-    id: "facebook",
-    enabled: true,
-    handle: "BMC Maroc",
-    tone: "proche",
-    postsToGenerate: 3,
-    captionLength: "moyenne",
-    frequency: "hebdo",
-  },
-  {
-    id: "linkedin",
-    enabled: true,
-    handle: "BMC — Benomar Metal Company",
-    tone: "expert",
-    postsToGenerate: 3,
-    captionLength: "longue",
-    frequency: "hebdo",
-  },
-  {
-    id: "tiktok",
-    enabled: false,
-    handle: "@bmc.official",
-    tone: "proche",
-    postsToGenerate: 2,
-    captionLength: "courte",
-    frequency: "bimensuelle",
-  },
-];
+export function buildAiPosts(settings: PlatformSettings[], brand: BrandProfile, from = toIso(new Date())): PostDraft[] {
+  const out: PostDraft[] = [];
+  settings
+    .filter((s) => s.enabled)
+    .forEach((s) => {
+      const dates = scheduleDates(s.frequency, s.postsToGenerate, from);
+      const bank = IDEAS[s.language];
+      dates.forEach((date, i) => {
+        const idea = bank[(i + s.id.length) % bank.length]!;
+        let text = idea.text;
+        if (s.captionLength !== "courte" && s.language === "fr") text += `\n\n${brand.name} — ${brand.services.split(".")[0]}.`;
+        if (s.captionLength === "longue" && s.language === "fr")
+          text += "\n\nParlez-nous de votre projet : notre équipe technique vous répond sous 24 h.";
+        const count = s.id === "instagram" ? 3 : s.id === "linkedin" ? 1 : 2;
+        const media = Array.from({ length: count }, (_, k) => {
+          const idx = (i * 2 + k + s.id.length) % STOCK_IMAGES.length;
+          return {
+            id: uid(),
+            kind: "image" as const,
+            src: STOCK_IMAGES[idx]!,
+            name: `ia-${s.id}-${i + 1}-${k + 1}.jpg`,
+            description: IMAGE_PROMPTS[idx % IMAGE_PROMPTS.length],
+          };
+        });
+        out.push({
+          description: text,
+          media,
+          platforms: [s.id],
+          perNetwork: {},
+          date,
+          time: s.usualTime,
+          status: "draft",
+          hashtags: idea.tags,
+          location: "Casablanca, Maroc",
+          tone: s.tone,
+          captionLength: s.captionLength,
+          aiGenerated: true,
+          idea: `Suggestion IA — ${idea.angle}`,
+        });
+      });
+    });
+  return out;
+}
 
-const SEED_BRAND: BrandProfile = {
-  name: "BMC — Benomar Metal Company",
-  logo: null,
-  services:
-    "Fonderie de cuivre et de laiton au Maroc : robinetterie, raccords, pièces sur plan, usinage de précision, finitions et traitement de surface, export vers l'Europe et l'Afrique.",
-  objectives: ["notoriete", "expertise", "export"],
+/* ------------------------------------------------------------------ */
+/* État persistant                                                     */
+/* ------------------------------------------------------------------ */
+
+type Data = {
+  posts: Post[];
+  platformSettings: PlatformSettings[];
+  brand: BrandProfile;
+  videos: Video[];
+  library: LibraryImage[];
+  ads: Ad[];
+  contacts: Contact[];
+  campaigns: Campaign[];
+  aiUsage: AiUsageEvent[];
 };
 
-type Store = {
+const STORAGE_KEY = "bmc-demo-v2";
+
+const seedData = (): Data => {
+  const aiDrafts = buildAiPosts(
+    SEED_PLATFORMS.map((p) => ({
+      ...p,
+      postsToGenerate: p.id === "instagram" ? 2 : p.id === "tiktok" ? 0 : 1,
+    })),
+    SEED_BRAND,
+  ).map((p) => ({ ...p, id: uid() }));
+  return {
+    posts: [...aiDrafts, ...SEED_POSTS],
+    platformSettings: SEED_PLATFORMS,
+    brand: SEED_BRAND,
+    videos: SEED_VIDEOS,
+    library: SEED_LIBRARY,
+    ads: SEED_ADS,
+    contacts: SEED_CONTACTS,
+    campaigns: SEED_CAMPAIGNS,
+    aiUsage: SEED_AI_USAGE,
+  };
+};
+
+type Store = Data & {
   authed: boolean;
   ready: boolean;
   login: () => void;
   logout: () => void;
-  posts: Post[];
-  platformSettings: PlatformSettings[];
-  brand: BrandProfile;
-  addPost: (p: Omit<Post, "id">) => Post;
+  addPost: (p: PostDraft) => Post;
   updatePost: (id: string, patch: Partial<Post>) => void;
   deletePost: (id: string) => void;
+  retryPost: (id: string) => void;
+  generateAiPosts: (only?: PlatformId[]) => number;
   updatePlatform: (id: PlatformId, patch: Partial<PlatformSettings>) => void;
+  setPlatformSettings: (s: PlatformSettings[]) => void;
   updateBrand: (patch: Partial<BrandProfile>) => void;
+  setBrand: (b: BrandProfile) => void;
+  addVideo: (v: Video) => void;
+  updateVideo: (id: string, patch: Partial<Video>) => void;
+  deleteVideo: (id: string) => void;
+  addLibraryImage: (i: LibraryImage) => void;
+  saveAd: (a: Ad) => void;
+  setAdStatus: (id: string, s: AdStatus) => void;
+  deleteAd: (id: string) => void;
+  setContacts: (fn: (c: Contact[]) => Contact[]) => void;
+  saveCampaign: (c: Campaign) => void;
+  setCampaignStatus: (id: string, s: CampaignStatus) => void;
+  deleteCampaign: (id: string) => void;
+  logAi: (kind: AiUsageEvent["kind"], count?: number) => void;
+  resetDemo: () => void;
 };
 
 const BmcContext = createContext<Store | null>(null);
@@ -282,91 +194,188 @@ const BmcContext = createContext<Store | null>(null);
 export function BmcProvider({ children }: { children: ReactNode }) {
   const [authed, setAuthed] = useState(false);
   const [ready, setReady] = useState(false);
-  const [posts, setPosts] = useState<Post[]>(SEED_POSTS);
-  const [platformSettings, setPlatformSettings] = useState<PlatformSettings[]>(SEED_PLATFORMS);
-  const [brand, setBrand] = useState<BrandProfile>(SEED_BRAND);
+  const [data, setData] = useState<Data>(seedData);
+  const loaded = useRef(false);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
+  // chargement
   useEffect(() => {
     try {
-      const raw = sessionStorage.getItem("bmc-auth");
-      if (raw === "1") setAuthed(true);
+      if (localStorage.getItem("bmc-auth") === "1") setAuthed(true);
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) setData({ ...seedData(), ...(JSON.parse(raw) as Partial<Data>) });
     } catch {
       /* ignore */
     }
+    loaded.current = true;
     setReady(true);
+  }, []);
+
+  // sauvegarde
+  useEffect(() => {
+    if (!loaded.current) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    } catch {
+      /* quota dépassé : on ignore */
+    }
+  }, [data]);
+
+  // horloge de la démo : diffusions programmées, génération automatique
+  useEffect(() => {
+    if (!ready) return;
+    const tick = () =>
+      setData((d) => {
+        const today = toIso(new Date());
+        let changed = false;
+        const posts = d.posts.map((p) => {
+          if (p.status === "scheduled" && isPast(p.date, p.time)) {
+            changed = true;
+            return { ...p, status: "published" as const };
+          }
+          return p;
+        });
+        const ads = d.ads.map((a) => {
+          if (a.status === "planned" && a.startDate && isPast(a.startDate, a.startTime)) {
+            changed = true;
+            return { ...a, status: "active" as const };
+          }
+          if ((a.status === "active" || a.status === "paused") && a.endDate && isPast(a.endDate, "23:59")) {
+            changed = true;
+            return { ...a, status: "ended" as const };
+          }
+          return a;
+        });
+        const campaigns = d.campaigns.map((c) => {
+          if (c.status === "planned" && isPast(c.date, c.time)) {
+            changed = true;
+            return { ...c, status: "sent" as const, stats: simulateCampaignStats(c, d.contacts) };
+          }
+          return c;
+        });
+        let newPosts: Post[] = [];
+        const platformSettings = d.platformSettings.map((s) => {
+          if (s.enabled && s.autoGenerate && s.nextGeneration <= today) {
+            changed = true;
+            newPosts = [...newPosts, ...buildAiPosts([s], d.brand).map((p) => ({ ...p, id: uid() }))];
+            return { ...s, nextGeneration: nextGenerationDate(s.frequency, s.postsToGenerate, today) };
+          }
+          return s;
+        });
+        if (!changed) return d;
+        const aiUsage = [
+          ...d.aiUsage,
+          ...newPosts.flatMap((p) => p.media.map(() => ({ id: uid(), kind: "image" as const, date: today }))),
+        ];
+        return { ...d, posts: [...newPosts, ...posts], ads, campaigns, platformSettings, aiUsage };
+      });
+    tick();
+    const t = setInterval(tick, 30_000);
+    return () => clearInterval(t);
+  }, [ready]);
+
+  const patch = useCallback(<K extends keyof Data>(k: K, fn: (v: Data[K]) => Data[K]) => {
+    setData((d) => ({ ...d, [k]: fn(d[k]) }));
   }, []);
 
   const login = useCallback(() => {
     setAuthed(true);
     try {
-      sessionStorage.setItem("bmc-auth", "1");
+      localStorage.setItem("bmc-auth", "1");
     } catch {
       /* ignore */
     }
   }, []);
-
   const logout = useCallback(() => {
     setAuthed(false);
     try {
-      sessionStorage.removeItem("bmc-auth");
+      localStorage.removeItem("bmc-auth");
     } catch {
       /* ignore */
     }
   }, []);
 
-  const addPost = useCallback((p: Omit<Post, "id">) => {
-    const post: Post = { ...p, id: uid() };
-    setPosts((prev) => [post, ...prev]);
-    return post;
-  }, []);
-
-  const updatePost = useCallback((id: string, patch: Partial<Post>) => {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === id && p.status !== "published" ? { ...p, ...patch } : p)),
-    );
-  }, []);
-
-  const deletePost = useCallback((id: string) => {
-    setPosts((prev) => prev.filter((p) => p.id !== id));
-  }, []);
-
-  const updatePlatform = useCallback((id: PlatformId, patch: Partial<PlatformSettings>) => {
-    setPlatformSettings((prev) => prev.map((a) => (a.id === id ? { ...a, ...patch } : a)));
-  }, []);
-
-  const updateBrand = useCallback((patch: Partial<BrandProfile>) => {
-    setBrand((b) => ({ ...b, ...patch }));
-  }, []);
-
-  const value = useMemo(
+  const actions = useMemo(
     () => ({
-      authed,
-      ready,
-      login,
-      logout,
-      posts,
-      platformSettings,
-      brand,
-      addPost,
-      updatePost,
-      deletePost,
-      updatePlatform,
-      updateBrand,
+      addPost: (p: PostDraft) => {
+        const post: Post = { ...p, id: uid() };
+        patch("posts", (l) => [post, ...l]);
+        return post;
+      },
+      updatePost: (id: string, pt: Partial<Post>) =>
+        patch("posts", (l) => l.map((p) => (p.id === id && p.status !== "published" ? { ...p, ...pt } : p))),
+      deletePost: (id: string) => patch("posts", (l) => l.filter((p) => p.id !== id)),
+      retryPost: (id: string) => {
+        patch("posts", (l) => l.map((p) => (p.id === id ? { ...p, status: "processing", failReason: undefined } : p)));
+        setTimeout(
+          () => patch("posts", (l) => l.map((p) => (p.id === id && p.status === "processing" ? { ...p, status: "published" } : p))),
+          2200,
+        );
+      },
+      generateAiPosts: (only?: PlatformId[]) => {
+        const cur = dataRef.current;
+        const settings = cur.platformSettings.filter((s) => !only || only.includes(s.id));
+        const drafts = buildAiPosts(settings, cur.brand).map((p) => ({ ...p, id: uid() }));
+        const today = toIso(new Date());
+        setData((d) => ({
+          ...d,
+          posts: [...drafts, ...d.posts],
+          aiUsage: [...d.aiUsage, ...drafts.flatMap((p) => p.media.map(() => ({ id: uid(), kind: "image" as const, date: today })))],
+        }));
+        return drafts.length;
+      },
+      updatePlatform: (id: PlatformId, pt: Partial<PlatformSettings>) =>
+        patch("platformSettings", (l) => l.map((a) => (a.id === id ? { ...a, ...pt } : a))),
+      setPlatformSettings: (s: PlatformSettings[]) => patch("platformSettings", () => s),
+      updateBrand: (pt: Partial<BrandProfile>) => patch("brand", (b) => ({ ...b, ...pt })),
+      setBrand: (b: BrandProfile) => patch("brand", () => b),
+      addVideo: (v: Video) => patch("videos", (l) => [v, ...l]),
+      updateVideo: (id: string, pt: Partial<Video>) => patch("videos", (l) => l.map((v) => (v.id === id ? { ...v, ...pt } : v))),
+      deleteVideo: (id: string) => patch("videos", (l) => l.filter((v) => v.id !== id)),
+      addLibraryImage: (i: LibraryImage) => patch("library", (l) => [i, ...l]),
+      saveAd: (a: Ad) => patch("ads", (l) => (l.some((x) => x.id === a.id) ? l.map((x) => (x.id === a.id ? a : x)) : [a, ...l])),
+      setAdStatus: (id: string, s: AdStatus) =>
+        patch("ads", (l) =>
+          l.map((a) => {
+            if (a.id !== id) return a;
+            if (s === "active" && a.results.impressions === 0)
+              return { ...a, status: s, results: { reach: 1240, impressions: 2980, clicks: 64, spend: Math.min(a.budget, 45), results: 3 } };
+            return { ...a, status: s };
+          }),
+        ),
+      deleteAd: (id: string) => patch("ads", (l) => l.filter((a) => a.id !== id)),
+      setContacts: (fn: (c: Contact[]) => Contact[]) => patch("contacts", fn),
+      saveCampaign: (c: Campaign) =>
+        patch("campaigns", (l) => (l.some((x) => x.id === c.id) ? l.map((x) => (x.id === c.id ? c : x)) : [c, ...l])),
+      setCampaignStatus: (id: string, s: CampaignStatus) => {
+        setData((d) => ({
+          ...d,
+          campaigns: d.campaigns.map((c) => (c.id === id ? { ...c, status: s } : c)),
+        }));
+        if (s === "sending")
+          setTimeout(
+            () =>
+              setData((d) => ({
+                ...d,
+                campaigns: d.campaigns.map((c) =>
+                  c.id === id && c.status === "sending" ? { ...c, status: "sent", stats: simulateCampaignStats(c, d.contacts) } : c,
+                ),
+              })),
+            2500,
+          );
+      },
+      deleteCampaign: (id: string) => patch("campaigns", (l) => l.filter((c) => c.id !== id)),
+      logAi: (kind: AiUsageEvent["kind"], count = 1) =>
+        patch("aiUsage", (l) => [...l, ...Array.from({ length: count }, () => ({ id: uid(), kind, date: toIso(new Date()) }))]),
+      resetDemo: () => setData(seedData()),
     }),
-    [
-      authed,
-      ready,
-      login,
-      logout,
-      posts,
-      platformSettings,
-      brand,
-      addPost,
-      updatePost,
-      deletePost,
-      updatePlatform,
-      updateBrand,
-    ],
+    [patch],
+  );
+
+  const value = useMemo<Store>(
+    () => ({ ...data, ...actions, authed, ready, login, logout }),
+    [data, actions, authed, ready, login, logout],
   );
 
   return <BmcContext.Provider value={value}>{children}</BmcContext.Provider>;
@@ -378,130 +387,56 @@ export function useBmc() {
   return ctx;
 }
 
-export const emptyPost = (): Omit<Post, "id"> => ({
+/** Destinataires valides d'une campagne WhatsApp : liste + consentement + non désabonné. */
+export const eligibleContacts = (contacts: Contact[], list: string) =>
+  contacts.filter((c) => c.lists.includes(list) && c.consent && !c.unsubscribed);
+
+function simulateCampaignStats(c: Campaign, contacts: Contact[]): Campaign["stats"] {
+  if (c.channel === "telegram") {
+    const sent = 247;
+    return { sent, delivered: sent - 2, read: 0, replies: 0, failed: 2, unsubscribed: 0, newSubscribers: 9 };
+  }
+  const sent = eligibleContacts(contacts, c.list).length;
+  const delivered = Math.max(0, sent - 1);
+  return {
+    sent,
+    delivered,
+    read: Math.round(delivered * 0.75),
+    replies: Math.round(delivered * 0.25),
+    failed: sent - delivered,
+    unsubscribed: sent > 5 ? 1 : 0,
+    newSubscribers: 0,
+  };
+}
+
+export const emptyPost = (): PostDraft => ({
   description: "",
-  images: [],
+  media: [],
   platforms: [],
-  date: iso(1),
+  perNetwork: {},
+  date: isoFromToday(1),
   time: "10:00",
   status: "draft",
   hashtags: "",
   location: "",
-  firstComment: "",
   tone: "expert",
   captionLength: "moyenne",
 });
 
-export const newImageId = uid;
-export const isoFromToday = iso;
+/** Où une vidéo est utilisée (posts et publicités). */
+export function videoUsage(videoId: string, posts: Post[], ads: Ad[]) {
+  return [
+    ...posts
+      .filter((p) => p.media.some((m) => m.videoId === videoId))
+      .map((p) => ({ type: "post" as const, id: p.id, label: p.description.slice(0, 40), status: p.status })),
+    ...ads
+      .filter((a) => a.creatives.some((m) => m.videoId === videoId))
+      .map((a) => ({ type: "ad" as const, id: a.id, label: a.name, status: a.status })),
+  ];
+}
 
-/* ---------- Génération IA de suggestions de posts ---------- */
-
-const AI_CAPTIONS: { description: string; hashtags: string; angle: string }[] = [
-  {
-    description:
-      "⚙️ Chaque raccord BMC traverse 14 contrôles qualité avant de quitter notre atelier. La précision, c'est une culture — pas une option.",
-    hashtags: "#BMC #Precision #Cuivre #Industrie #MadeInMorocco",
-    angle: "qualité",
-  },
-  {
-    description:
-      "Du lingot au produit fini : découvrez comment nos équipes transforment le cuivre brut en composants de haute performance pour l'industrie marocaine.",
-    hashtags: "#BMC #Fabrication #Laiton #Savoirfaire",
-    angle: "savoir-faire",
-  },
-  {
-    description:
-      "Nouveau record de production ce mois-ci 🔥 Merci à nos 120 collaborateurs qui font vivre l'excellence industrielle BMC au quotidien.",
-    hashtags: "#BMC #Equipe #Production #Innovation",
-    angle: "équipe",
-  },
-  {
-    description:
-      "Usinage de précision sur plan : tolérance 0,01 mm, finitions miroir, contrôle dimensionnel systématique. Voici ce que BMC livre à l'industrie.",
-    hashtags: "#BMC #Usinage #Expertise #Industrie40",
-    angle: "expertise",
-  },
-  {
-    description:
-      "Export Europe & Afrique : nos raccords laiton franchissent les frontières. Capacité doublée, délais maîtrisés, qualité constante.",
-    hashtags: "#BMC #Export #Laiton #Maroc",
-    angle: "export",
-  },
-];
-
-const STOCK_NAMES = [
-  ["ai-usine.jpg", "Visuel généré : atelier de fabrication BMC"],
-  ["ai-pieces.jpg", "Visuel généré : pièces en cuivre usinées"],
-  ["ai-equipe.jpg", "Visuel généré : technicien en atelier"],
-  ["ai-texture.jpg", "Visuel généré : texture de cuivre brossé"],
-] as const;
-
-const OBJECTIVE_HINTS: Record<string, string> = {
-  notoriete: "faire connaître la marque BMC",
-  leads: "attirer des clients industriels",
-  recrutement: "valoriser la marque employeur",
-  engagement: "créer de l'interaction avec la communauté",
-  export: "développer la visibilité à l'international",
-  expertise: "démontrer l'expertise technique",
-};
-
-/**
- * Construit une suggestion de post IA (brouillon) à partir de la configuration :
- * plateformes actives, tonalité / longueur / fréquence par plateforme, et profil de marque.
- */
-export const buildAiSuggestion = (
-  platformSettings: PlatformSettings[],
-  brand: BrandProfile,
-): Omit<Post, "id"> => {
-  const active = platformSettings.filter((p) => p.enabled);
-  const primary = active[0];
-  const tone: ToneId = primary?.tone ?? "expert";
-  const captionLength: CaptionLength = primary?.captionLength ?? "moyenne";
-  const days = primary ? (FREQUENCIES.find((f) => f.id === primary.frequency)?.days ?? 7) : 7;
-
-  const pick = AI_CAPTIONS[Math.floor(Math.random() * AI_CAPTIONS.length)] ?? AI_CAPTIONS[0]!;
-  const objectives = brand.objectives
-    .map((o) => OBJECTIVE_HINTS[o])
-    .filter(Boolean)
-    .slice(0, 2)
-    .join(" et ");
-
-  let description = pick.description;
-  if (captionLength !== "courte") {
-    description += `\n\n${brand.name} — ${brand.services.split(".")[0]}.`;
-  }
-  if (captionLength === "longue") {
-    description += `\n\nAngle éditorial : ${pick.angle}${
-      objectives ? `, au service de ${objectives}` : ""
-    }.`;
-  }
-
-  // 1 à 3 visuels selon la plateforme principale (Instagram = carrousel)
-  const count = primary?.id === "instagram" ? 3 : primary?.id === "linkedin" ? 1 : 2;
-  const images: PostImage[] = Array.from({ length: count }, (_, i) => {
-    const [name, desc] = STOCK_NAMES[i % STOCK_NAMES.length]!;
-    return {
-      id: uid(),
-      src: STOCK_IMAGES[i % STOCK_IMAGES.length]!,
-      name,
-      description: desc,
-    };
-  });
-
-  return {
-    description,
-    images,
-    platforms: active.length ? active.map((p) => p.id) : ["instagram"],
-    date: iso(days),
-    time: primary?.id === "linkedin" ? "08:45" : "18:30",
-    status: "draft",
-    hashtags: pick.hashtags,
-    location: "Casablanca, Maroc",
-    firstComment: "",
-    tone,
-    captionLength,
-    aiGenerated: true,
-    idea: `Suggestion IA — ${pick.angle}${objectives ? ` (${objectives})` : ""}`,
-  };
-};
+/** Suppression bloquée si utilisée dans un post programmé ou une publicité active. */
+export const videoDeleteBlocked = (videoId: string, posts: Post[], ads: Ad[]) =>
+  videoUsage(videoId, posts, ads).some(
+    (u) => (u.type === "post" && (u.status === "scheduled" || u.status === "processing")) || (u.type === "ad" && u.status === "active"),
+  );
