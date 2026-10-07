@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdsRouteImport } from './routes/ads'
+import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CmRouteImport } from './routes/cm'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as StatsRouteImport } from './routes/stats'
 import { Route as StudioRouteImport } from './routes/studio'
 import { Route as CmIndexRouteImport } from './routes/cm.index'
 import { Route as CmCalendarRouteImport } from './routes/cm.calendar'
@@ -29,6 +31,11 @@ const AdsRoute = AdsRouteImport.update({
   path: '/ads',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CampaignsRoute = CampaignsRouteImport.update({
+  id: '/campaigns',
+  path: '/campaigns',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CmRoute = CmRouteImport.update({
   id: '/cm',
   path: '/cm',
@@ -37,6 +44,11 @@ const CmRoute = CmRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StatsRoute = StatsRouteImport.update({
+  id: '/stats',
+  path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
 const StudioRoute = StudioRouteImport.update({
@@ -68,8 +80,10 @@ const CmPostsRoute = CmPostsRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ads': typeof AdsRoute
+  '/campaigns': typeof CampaignsRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/stats': typeof StatsRoute
   '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
@@ -79,7 +93,9 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ads': typeof AdsRoute
+  '/campaigns': typeof CampaignsRoute
   '/dashboard': typeof DashboardRoute
+  '/stats': typeof StatsRoute
   '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
@@ -90,8 +106,10 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ads': typeof AdsRoute
+  '/campaigns': typeof CampaignsRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/stats': typeof StatsRoute
   '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
@@ -103,8 +121,10 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/ads'
+    | '/campaigns'
     | '/cm'
     | '/dashboard'
+    | '/stats'
     | '/studio'
     | '/cm/calendar'
     | '/cm/config'
@@ -114,7 +134,9 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/ads'
+    | '/campaigns'
     | '/dashboard'
+    | '/stats'
     | '/studio'
     | '/cm/calendar'
     | '/cm/config'
@@ -124,8 +146,10 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/ads'
+    | '/campaigns'
     | '/cm'
     | '/dashboard'
+    | '/stats'
     | '/studio'
     | '/cm/calendar'
     | '/cm/config'
@@ -136,8 +160,10 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdsRoute: typeof AdsRoute
+  CampaignsRoute: typeof CampaignsRoute
   CmRoute: typeof CmRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  StatsRoute: typeof StatsRoute
   StudioRoute: typeof StudioRoute
 }
 
@@ -157,6 +183,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/campaigns': {
+      id: '/campaigns'
+      path: '/campaigns'
+      fullPath: '/campaigns'
+      preLoaderRoute: typeof CampaignsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/cm': {
       id: '/cm'
       path: '/cm'
@@ -169,6 +202,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/stats': {
+      id: '/stats'
+      path: '/stats'
+      fullPath: '/stats'
+      preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/studio': {
@@ -228,8 +268,10 @@ const CmRouteWithChildren = CmRoute._addFileChildren(CmRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdsRoute: AdsRoute,
+  CampaignsRoute: CampaignsRoute,
   CmRoute: CmRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  StatsRoute: StatsRoute,
   StudioRoute: StudioRoute,
 }
 export const routeTree = rootRouteImport
