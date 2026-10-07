@@ -26,7 +26,7 @@ const TONE_CLS: Record<Tone, string> = {
   info: "border-[color-mix(in_oklab,var(--chart-2,var(--primary))_45%,transparent)] text-foreground bg-surface-3/70",
 };
 
-export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
+export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string | undefined }) {
   return (
     <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-medium", TONE_CLS[tone], className)}>
       {children}
