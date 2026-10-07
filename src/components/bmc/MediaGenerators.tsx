@@ -102,7 +102,7 @@ export function ImageGenerator({ open, onOpenChange, onPick }: { open: boolean; 
   }, 2000);
 
   const start = () => {
-    if (!prompt.trim()) return setErr("Champ requis");
+    if (!prompt.trim()) { setErr("Champ requis"); return; }
     setErr("");
     setResults([]);
     gen.start();
@@ -366,15 +366,15 @@ export function VideoConfigForm({ cfg, set, retouchOnly = false }: { cfg: VideoC
 
 export const configToRecord = (c: VideoConfig): Record<string, string> => {
   const r: Record<string, string> = { Mode: c.mode };
-  if (c.prompt) r.Prompt = c.prompt;
+  if (c.prompt) r["Prompt"] = c.prompt;
   if (c.editInstruction) r["Consigne de retouche"] = c.editInstruction;
   if (c.sourceName) r["Vidéo source"] = c.sourceName;
-  r.Durée = `${c.duration} s`;
-  r.Format = c.format;
-  r.Résolution = c.resolution;
+  r["Durée"] = `${c.duration} s`;
+  r["Format"] = c.format;
+  r["Résolution"] = c.resolution;
   r["Audio généré"] = c.audio ? "Oui" : "Non";
   if (c.negative) r["Prompt négatif"] = c.negative;
-  r.Variantes = String(c.variants);
+  r["Variantes"] = String(c.variants);
   r["Voix off"] = c.voiceOn ? `${langLabel(c.voiceLang)} — ${c.voice}` : "Aucune";
   r["Sous-titres"] = c.subsOn ? langLabel(c.subsLang) : "Non";
   return r;
@@ -400,9 +400,9 @@ export function VideoGenerator({ open, onOpenChange, onPick }: { open: boolean; 
 
   const start = () => {
     if (cfg.mode === "Retouche d'une vidéo filmée") {
-      if (!cfg.sourceThumb && !cfg.sourceName) return setErr("Champ requis : importez la vidéo source");
-      if (!cfg.editInstruction.trim()) return setErr("Champ requis : consigne de retouche");
-    } else if (!cfg.prompt.trim()) return setErr("Champ requis : prompt");
+      if (!cfg.sourceThumb && !cfg.sourceName) { setErr("Champ requis : importez la vidéo source"); return; }
+      if (!cfg.editInstruction.trim()) { setErr("Champ requis : consigne de retouche"); return; }
+    } else if (!cfg.prompt.trim()) { setErr("Champ requis : prompt"); return; }
     setErr("");
     gen.start();
   };

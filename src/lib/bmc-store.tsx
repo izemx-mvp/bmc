@@ -98,7 +98,7 @@ export function buildAiPosts(settings: PlatformSettings[], brand: BrandProfile, 
             kind: "image" as const,
             src: STOCK_IMAGES[idx]!,
             name: `ia-${s.id}-${i + 1}-${k + 1}.jpg`,
-            description: IMAGE_PROMPTS[idx % IMAGE_PROMPTS.length],
+            description: IMAGE_PROMPTS[idx % IMAGE_PROMPTS.length]!,
           };
         });
         out.push({
@@ -307,7 +307,7 @@ export function BmcProvider({ children }: { children: ReactNode }) {
         patch("posts", (l) => l.map((p) => (p.id === id && p.status !== "published" ? { ...p, ...pt } : p))),
       deletePost: (id: string) => patch("posts", (l) => l.filter((p) => p.id !== id)),
       retryPost: (id: string) => {
-        patch("posts", (l) => l.map((p) => (p.id === id ? { ...p, status: "processing", failReason: undefined } : p)));
+        patch("posts", (l) => l.map((p): Post => { if (p.id !== id) return p; const { failReason: _f, ...rest } = p; return { ...rest, status: "processing" }; }));
         setTimeout(
           () => patch("posts", (l) => l.map((p) => (p.id === id && p.status === "processing" ? { ...p, status: "published" } : p))),
           2200,

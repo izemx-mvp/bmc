@@ -26,7 +26,7 @@ const TONE_CLS: Record<Tone, string> = {
   info: "border-[color-mix(in_oklab,var(--chart-2,var(--primary))_45%,transparent)] text-foreground bg-surface-3/70",
 };
 
-export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
+export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string | undefined }) {
   return (
     <span className={cn("inline-flex items-center gap-1 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-[11px] font-medium", TONE_CLS[tone], className)}>
       {children}
@@ -41,8 +41,8 @@ const POST_TONE: Record<PostStatus, Tone> = {
   published: "success",
   failed: "danger",
 };
-export function StatusBadge({ status }: { status: PostStatus }) {
-  return <Pill tone={POST_TONE[status]}>{POST_STATUS_LABEL[status]}</Pill>;
+export function StatusBadge({ status, className }: { status: PostStatus; className?: string }) {
+  return <Pill tone={POST_TONE[status]} className={className}>{POST_STATUS_LABEL[status]}</Pill>;
 }
 
 export function ConfirmDialog({
@@ -113,7 +113,7 @@ export function FakePlayer({
   thumb: string;
   duration: number;
   format?: VideoFormat;
-  subtitle?: string;
+  subtitle?: string | undefined;
   className?: string;
 }) {
   const [playing, setPlaying] = useState(false);
@@ -189,7 +189,7 @@ export function Counter({ label, value, icon: Icon, hint }: { label: string; val
   );
 }
 
-export function FieldError({ msg }: { msg?: string }) {
+export function FieldError({ msg }: { msg?: string | undefined }) {
   if (!msg) return null;
   return <p className="mt-1 text-[11px] font-medium text-destructive">{msg}</p>;
 }
