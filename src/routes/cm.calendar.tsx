@@ -65,12 +65,13 @@ function CalendarPage() {
     });
   }, [cursor, view]);
 
+  const today = toIso(new Date());
   const eventsOn = (k: string): Ev[] => {
     const out: Ev[] = [];
     if (filters.post) posts.filter((p) => p.date === k).forEach((p) => out.push({ kind: "post", item: p, time: p.time }));
     if (filters.ad)
       ads
-        .filter((a) => a.startDate && a.status !== "draft" && a.startDate <= k && k <= (a.endDate ?? (a.status === "ended" ? a.startDate : "9999")))
+        .filter((a) => a.startDate && a.status !== "draft" && a.startDate <= k && k <= (a.endDate ?? (a.status === "ended" ? a.startDate : today)))
         .forEach((a) => out.push({ kind: "ad", item: a, time: a.startDate === k ? a.startTime : "00:00", start: a.startDate === k, end: a.endDate === k }));
     if (filters.campaign) campaigns.filter((c) => c.date === k && c.status !== "cancelled").forEach((c) => out.push({ kind: "campaign", item: c, time: c.time }));
     return out.sort((a, b) => a.time.localeCompare(b.time));
@@ -93,7 +94,6 @@ function CalendarPage() {
     toast.success("Publication déplacée");
   };
 
-  const today = toIso(new Date());
 
   const Chip = ({ e, big }: { e: Ev; big?: boolean }) => {
     const t = TYPE[e.kind];

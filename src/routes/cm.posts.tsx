@@ -127,8 +127,8 @@ function PostsPage() {
                   {p.media[0] ? <img src={p.media[0].src} alt="" className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105" loading="lazy" /> : <span className="flex h-full items-center justify-center text-muted-foreground"><ImageIcon className="h-6 w-6" /></span>}
                   <span className="absolute inset-x-0 top-0 flex items-start justify-between p-3">
                     <span className="flex flex-wrap gap-1.5">
-                      <StatusBadge status={p.status} />
-                      {p.aiGenerated && <Pill tone="primary" className="backdrop-blur"><Sparkles className="h-3 w-3" /> Suggestion IA</Pill>}
+                      <StatusBadge status={p.status} className="bg-background/90 backdrop-blur" />
+                      {p.aiGenerated && <Pill tone="primary" className="bg-background/90 backdrop-blur"><Sparkles className="h-3 w-3" /> Suggestion IA</Pill>}
                     </span>
                     <span className="flex items-center gap-1.5 rounded-full bg-background/80 px-2 py-0.5 text-[11px] backdrop-blur">
                       <ImageIcon className="h-3 w-3" /> {p.media.length - videos}

@@ -41,8 +41,8 @@ const POST_TONE: Record<PostStatus, Tone> = {
   published: "success",
   failed: "danger",
 };
-export function StatusBadge({ status }: { status: PostStatus }) {
-  return <Pill tone={POST_TONE[status]}>{POST_STATUS_LABEL[status]}</Pill>;
+export function StatusBadge({ status, className }: { status: PostStatus; className?: string }) {
+  return <Pill tone={POST_TONE[status]} className={className}>{POST_STATUS_LABEL[status]}</Pill>;
 }
 
 export function ConfirmDialog({
