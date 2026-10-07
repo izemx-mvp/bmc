@@ -102,7 +102,7 @@ export function ImageGenerator({ open, onOpenChange, onPick }: { open: boolean; 
   }, 2000);
 
   const start = () => {
-    if (!prompt.trim()) return setErr("Champ requis");
+    if (!prompt.trim()) { setErr("Champ requis"); return; }
     setErr("");
     setResults([]);
     gen.start();
@@ -400,9 +400,9 @@ export function VideoGenerator({ open, onOpenChange, onPick }: { open: boolean; 
 
   const start = () => {
     if (cfg.mode === "Retouche d'une vidéo filmée") {
-      if (!cfg.sourceThumb && !cfg.sourceName) return setErr("Champ requis : importez la vidéo source");
-      if (!cfg.editInstruction.trim()) return setErr("Champ requis : consigne de retouche");
-    } else if (!cfg.prompt.trim()) return setErr("Champ requis : prompt");
+      if (!cfg.sourceThumb && !cfg.sourceName) { setErr("Champ requis : importez la vidéo source"); return; }
+      if (!cfg.editInstruction.trim()) { setErr("Champ requis : consigne de retouche"); return; }
+    } else if (!cfg.prompt.trim()) { setErr("Champ requis : prompt"); return; }
     setErr("");
     gen.start();
   };

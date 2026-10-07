@@ -87,8 +87,8 @@ function CalendarPage() {
     const p = posts.find((x) => x.id === dragId);
     setDragId(null);
     if (!p || p.date === k) return;
-    if (p.status === "published") return toast.error("Une publication publiée ne peut pas être déplacée");
-    if (k < toIso(new Date())) return toast.error("Impossible de déplacer dans le passé");
+    if (p.status === "published") { toast.error("Une publication publiée ne peut pas être déplacée"); return; }
+    if (k < toIso(new Date())) { toast.error("Impossible de déplacer dans le passé"); return; }
     updatePost(p.id, { date: k });
     toast.success("Publication déplacée");
   };

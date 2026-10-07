@@ -175,7 +175,7 @@ function AdEditor({ ad: initial, onClose }: { ad: Ad; onClose: () => void }) {
   const err = !ad.name.trim() ? "Champ requis : nom de la campagne" : "";
 
   const save = () => {
-    if (err) return toast.error(err);
+    if (err) { toast.error(err); return; }
     saveAd(ad);
     toast.success("Publicité enregistrée");
     onClose();

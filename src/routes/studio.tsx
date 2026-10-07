@@ -147,7 +147,7 @@ function VideoSheet({ video, onClose }: { video: Video | null; onClose: () => vo
   };
 
   const apply = () => {
-    if (edit === "retouche" && !instruction.trim()) return toast.error("Champ requis : consigne de retouche");
+    if (edit === "retouche" && !instruction.trim()) { toast.error("Champ requis : consigne de retouche"); return; }
     setProgress(0);
     let p = 0;
     const i = setInterval(() => {

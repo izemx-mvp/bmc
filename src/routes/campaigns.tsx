@@ -296,7 +296,7 @@ function ContactsPanel() {
       rows.forEach((r, i) => {
         const phone = normalizeMaPhone(get(r, "tel"));
         const name = get(r, "nom");
-        if (!phone) return rep.invalid.push({ row: i + 2, name, phone: get(r, "tel") });
+        if (!phone) { rep.invalid.push({ row: i + 2, name, phone: get(r, "tel") }); return; }
         const consentRaw = get(r, "consent").toLowerCase();
         const existing = next.find((c) => c.phone === phone);
         if (existing) {
