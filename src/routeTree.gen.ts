@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdsRouteImport } from './routes/ads'
 import { Route as CmRouteImport } from './routes/cm'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as StudioRouteImport } from './routes/studio'
@@ -21,6 +22,11 @@ import { Route as CmPostsRouteImport } from './routes/cm.posts'
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdsRoute = AdsRouteImport.update({
+  id: '/ads',
+  path: '/ads',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CmRoute = CmRouteImport.update({
@@ -61,6 +67,7 @@ const CmPostsRoute = CmPostsRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ads': typeof AdsRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/studio': typeof StudioRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ads': typeof AdsRoute
   '/dashboard': typeof DashboardRoute
   '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
@@ -81,6 +89,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/ads': typeof AdsRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/studio': typeof StudioRoute
@@ -93,6 +102,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ads'
     | '/cm'
     | '/dashboard'
     | '/studio'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ads'
     | '/dashboard'
     | '/studio'
     | '/cm/calendar'
@@ -112,6 +123,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/ads'
     | '/cm'
     | '/dashboard'
     | '/studio'
@@ -123,6 +135,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdsRoute: typeof AdsRoute
   CmRoute: typeof CmRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   StudioRoute: typeof StudioRoute
@@ -135,6 +148,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ads': {
+      id: '/ads'
+      path: '/ads'
+      fullPath: '/ads'
+      preLoaderRoute: typeof AdsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cm': {
@@ -207,6 +227,7 @@ const CmRouteWithChildren = CmRoute._addFileChildren(CmRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdsRoute: AdsRoute,
   CmRoute: CmRouteWithChildren,
   DashboardRoute: DashboardRoute,
   StudioRoute: StudioRoute,
