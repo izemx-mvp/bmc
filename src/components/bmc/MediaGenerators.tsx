@@ -366,15 +366,15 @@ export function VideoConfigForm({ cfg, set, retouchOnly = false }: { cfg: VideoC
 
 export const configToRecord = (c: VideoConfig): Record<string, string> => {
   const r: Record<string, string> = { Mode: c.mode };
-  if (c.prompt) r.Prompt = c.prompt;
+  if (c.prompt) r["Prompt"] = c.prompt;
   if (c.editInstruction) r["Consigne de retouche"] = c.editInstruction;
   if (c.sourceName) r["Vidéo source"] = c.sourceName;
-  r.Durée = `${c.duration} s`;
-  r.Format = c.format;
-  r.Résolution = c.resolution;
+  r["Durée"] = `${c.duration} s`;
+  r["Format"] = c.format;
+  r["Résolution"] = c.resolution;
   r["Audio généré"] = c.audio ? "Oui" : "Non";
   if (c.negative) r["Prompt négatif"] = c.negative;
-  r.Variantes = String(c.variants);
+  r["Variantes"] = String(c.variants);
   r["Voix off"] = c.voiceOn ? `${langLabel(c.voiceLang)} — ${c.voice}` : "Aucune";
   r["Sous-titres"] = c.subsOn ? langLabel(c.subsLang) : "Non";
   return r;

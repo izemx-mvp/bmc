@@ -56,6 +56,7 @@ import { PreviewCard, contentFor } from "./PreviewCard";
 const STEPS = ["Contenu", "Aperçu", "Publication"] as const;
 
 type Slot = { id: string; media: MediaItem | null; description: string };
+type Errs = Partial<Record<"description" | "media" | "platforms" | "instagram" | "tiktok" | "date" | "time", string>>;
 type Mode = "draft" | "now" | "schedule";
 
 const toSlots = (media: MediaItem[]): Slot[] =>
@@ -70,7 +71,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
   const [over, setOver] = useState<number | null>(null);
   const [net, setNet] = useState<PlatformId>("instagram");
   const [mode, setMode] = useState<Mode>("schedule");
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [errors, setErrors] = useState<Errs>({});
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState<Post | null>(null);
   const [uploading, setUploading] = useState(0);
@@ -98,7 +99,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
   useEffect(() => {
     setDraft((d) => ({
       ...d,
-      media: slots.filter((s) => s.media).map((s) => ({ ...s.media!, description: s.description || undefined })),
+      media: slots.filter((s) => s.media).map((s) => { const { description: _d, ...m } = s.media!; return s.description ? { ...m, description: s.description } : m; }),
     }));
   }, [slots]);
 
@@ -168,7 +169,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
 
   const goNext = () => {
     if (step === 0) {
-      const e: Record<string, string> = {};
+      const e: Errs = {};
       if (!draft.description.trim()) e.description = "Champ requis";
       if (!draft.media.length) e.media = "Champ requis : ajoutez au moins un média";
       setErrors(e);
@@ -179,7 +180,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
   };
 
   const submit = () => {
-    const e = validatePost(draft, mode);
+    const e = validatePost(draft, mode) as Errs;
     setErrors(e);
     if (Object.keys(e).length) return;
     setBusy(true);

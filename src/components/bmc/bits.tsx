@@ -113,7 +113,7 @@ export function FakePlayer({
   thumb: string;
   duration: number;
   format?: VideoFormat;
-  subtitle?: string;
+  subtitle?: string | undefined;
   className?: string;
 }) {
   const [playing, setPlaying] = useState(false);
@@ -189,7 +189,7 @@ export function Counter({ label, value, icon: Icon, hint }: { label: string; val
   );
 }
 
-export function FieldError({ msg }: { msg?: string }) {
+export function FieldError({ msg }: { msg?: string | undefined }) {
   if (!msg) return null;
   return <p className="mt-1 text-[11px] font-medium text-destructive">{msg}</p>;
 }
