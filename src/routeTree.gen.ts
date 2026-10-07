@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CmRouteImport } from './routes/cm'
 import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as StudioRouteImport } from './routes/studio'
 import { Route as CmIndexRouteImport } from './routes/cm.index'
 import { Route as CmCalendarRouteImport } from './routes/cm.calendar'
 import { Route as CmConfigRouteImport } from './routes/cm.config'
@@ -30,6 +31,11 @@ const CmRoute = CmRouteImport.update({
 const DashboardRoute = DashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const StudioRoute = StudioRouteImport.update({
+  id: '/studio',
+  path: '/studio',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CmIndexRoute = CmIndexRouteImport.update({
@@ -57,6 +63,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/dashboard': typeof DashboardRoute
+  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
+  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
@@ -86,17 +95,26 @@ export interface FileRouteTypes {
     | '/'
     | '/cm'
     | '/dashboard'
+    | '/studio'
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
     | '/cm/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/dashboard' | '/cm/calendar' | '/cm/config' | '/cm/posts' | '/cm'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/studio'
+    | '/cm/calendar'
+    | '/cm/config'
+    | '/cm/posts'
+    | '/cm'
   id:
     | '__root__'
     | '/'
     | '/cm'
     | '/dashboard'
+    | '/studio'
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
@@ -107,6 +125,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CmRoute: typeof CmRouteWithChildren
   DashboardRoute: typeof DashboardRoute
+  StudioRoute: typeof StudioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -130,6 +149,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/studio': {
+      id: '/studio'
+      path: '/studio'
+      fullPath: '/studio'
+      preLoaderRoute: typeof StudioRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cm/': {
@@ -183,6 +209,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CmRoute: CmRouteWithChildren,
   DashboardRoute: DashboardRoute,
+  StudioRoute: StudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
