@@ -196,6 +196,8 @@ export function BmcProvider({ children }: { children: ReactNode }) {
   const [ready, setReady] = useState(false);
   const [data, setData] = useState<Data>(seedData);
   const loaded = useRef(false);
+  const dataRef = useRef(data);
+  dataRef.current = data;
 
   // chargement
   useEffect(() => {
@@ -312,19 +314,16 @@ export function BmcProvider({ children }: { children: ReactNode }) {
         );
       },
       generateAiPosts: (only?: PlatformId[]) => {
-        let count = 0;
-        setData((d) => {
-          const settings = d.platformSettings.filter((s) => !only || only.includes(s.id));
-          const drafts = buildAiPosts(settings, d.brand).map((p) => ({ ...p, id: uid() }));
-          count = drafts.length;
-          const today = toIso(new Date());
-          return {
-            ...d,
-            posts: [...drafts, ...d.posts],
-            aiUsage: [...d.aiUsage, ...drafts.flatMap((p) => p.media.map(() => ({ id: uid(), kind: "image" as const, date: today })))],
-          };
-        });
-        return count;
+        const cur = dataRef.current;
+        const settings = cur.platformSettings.filter((s) => !only || only.includes(s.id));
+        const drafts = buildAiPosts(settings, cur.brand).map((p) => ({ ...p, id: uid() }));
+        const today = toIso(new Date());
+        setData((d) => ({
+          ...d,
+          posts: [...drafts, ...d.posts],
+          aiUsage: [...d.aiUsage, ...drafts.flatMap((p) => p.media.map(() => ({ id: uid(), kind: "image" as const, date: today })))],
+        }));
+        return drafts.length;
       },
       updatePlatform: (id: PlatformId, pt: Partial<PlatformSettings>) =>
         patch("platformSettings", (l) => l.map((a) => (a.id === id ? { ...a, ...pt } : a))),
