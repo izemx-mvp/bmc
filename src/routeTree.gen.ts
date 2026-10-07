@@ -19,6 +19,7 @@ import { Route as CmIndexRouteImport } from './routes/cm.index'
 import { Route as CmCalendarRouteImport } from './routes/cm.calendar'
 import { Route as CmConfigRouteImport } from './routes/cm.config'
 import { Route as CmPostsRouteImport } from './routes/cm.posts'
+import { Route as CmStudioImageRouteImport } from './routes/cm.studio-image'
 import { Route as CmStudioVideoRouteImport } from './routes/cm.studio-video'
 
 const IndexRoute = IndexRouteImport.update({
@@ -71,6 +72,11 @@ const CmPostsRoute = CmPostsRouteImport.update({
   path: '/posts',
   getParentRoute: () => CmRoute,
 } as any)
+const CmStudioImageRoute = CmStudioImageRouteImport.update({
+  id: '/studio-image',
+  path: '/studio-image',
+  getParentRoute: () => CmRoute,
+} as any)
 const CmStudioVideoRoute = CmStudioVideoRouteImport.update({
   id: '/studio-video',
   path: '/studio-video',
@@ -87,6 +93,7 @@ export interface FileRoutesByFullPath {
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
   '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm/': typeof CmIndexRoute
 }
@@ -99,6 +106,7 @@ export interface FileRoutesByTo {
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
   '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm': typeof CmIndexRoute
 }
@@ -113,6 +121,7 @@ export interface FileRoutesById {
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
   '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm/': typeof CmIndexRoute
 }
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
     | '/cm/studio-video'
     | '/cm/'
   fileRoutesByTo: FileRoutesByTo
@@ -140,6 +150,7 @@ export interface FileRouteTypes {
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
     | '/cm/studio-video'
     | '/cm'
   id:
@@ -153,6 +164,7 @@ export interface FileRouteTypes {
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
     | '/cm/studio-video'
     | '/cm/'
   fileRoutesById: FileRoutesById
@@ -238,6 +250,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CmPostsRouteImport
       parentRoute: typeof CmRoute
     }
+    '/cm/studio-image': {
+      id: '/cm/studio-image'
+      path: '/studio-image'
+      fullPath: '/cm/studio-image'
+      preLoaderRoute: typeof CmStudioImageRouteImport
+      parentRoute: typeof CmRoute
+    }
     '/cm/studio-video': {
       id: '/cm/studio-video'
       path: '/studio-video'
@@ -252,6 +271,7 @@ interface CmRouteChildren {
   CmCalendarRoute: typeof CmCalendarRoute
   CmConfigRoute: typeof CmConfigRoute
   CmPostsRoute: typeof CmPostsRoute
+  CmStudioImageRoute: typeof CmStudioImageRoute
   CmStudioVideoRoute: typeof CmStudioVideoRoute
   CmIndexRoute: typeof CmIndexRoute
 }
@@ -260,6 +280,7 @@ const CmRouteChildren: CmRouteChildren = {
   CmCalendarRoute: CmCalendarRoute,
   CmConfigRoute: CmConfigRoute,
   CmPostsRoute: CmPostsRoute,
+  CmStudioImageRoute: CmStudioImageRoute,
   CmStudioVideoRoute: CmStudioVideoRoute,
   CmIndexRoute: CmIndexRoute,
 }
