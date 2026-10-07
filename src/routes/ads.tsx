@@ -35,7 +35,7 @@ import {
 } from "@/lib/bmc-store";
 
 export const Route = createFileRoute("/ads")({
-  validateSearch: (s: Record<string, unknown>) => ({ video: typeof s.video === "string" ? s.video : undefined }),
+  validateSearch: (s: Record<string, unknown>) => ({ video: typeof s["video"] === "string" ? (s["video"] as string) : undefined }),
   head: () => ({
     meta: [
       { title: "Publicités — BMC Community Manager AI" },
@@ -134,7 +134,8 @@ function AdsPage() {
 
   useEffect(() => {
     const v = videos.find((x) => x.id === video);
-    if (v) setEditing({ ...blankAd(), format: "video", creatives: [{ id: newId(), kind: "video", src: v.thumb, name: v.title, duration: v.duration, videoId: v.id }] });
+    if (!v) return;
+    setEditing({ ...blankAd(), format: "video", creatives: [{ id: newId(), kind: "video", src: v.thumb, name: v.title, duration: v.duration, videoId: v.id }] });
   }, [video]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
@@ -252,7 +253,7 @@ function AdEditor({ ad: initial, onClose }: { ad: Ad; onClose: () => void }) {
               <div className="grid gap-3 sm:grid-cols-3">
                 <div><L>Date de début</L><Input type="date" value={ad.startDate} onChange={(e) => set({ startDate: e.target.value })} className="mt-1.5 bg-surface/60" /></div>
                 <div><L>Heure de début</L><Input type="time" value={ad.startTime} onChange={(e) => set({ startTime: e.target.value })} className="mt-1.5 bg-surface/60" /></div>
-                <div><L>{ad.budgetType === "daily" ? "Date de fin (optionnelle)" : "Date de fin"}</L><Input type="date" value={ad.endDate ?? ""} onChange={(e) => set({ endDate: e.target.value || undefined })} className="mt-1.5 bg-surface/60" /></div>
+                <div><L>{ad.budgetType === "daily" ? "Date de fin (optionnelle)" : "Date de fin"}</L><Input type="date" value={ad.endDate ?? ""} onChange={(e) => setAd((a) => { const { endDate: _e, ...r } = a; return e.target.value ? { ...r, endDate: e.target.value } : r; })} className="mt-1.5 bg-surface/60" /></div>
               </div>
             </fieldset>
           </div>

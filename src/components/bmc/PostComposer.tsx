@@ -180,7 +180,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
   };
 
   const submit = () => {
-    const e = validatePost(draft, mode) as Errs;
+    const e = validatePost(draft, mode);
     setErrors(e);
     if (Object.keys(e).length) return;
     setBusy(true);

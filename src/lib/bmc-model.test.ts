@@ -26,16 +26,16 @@ describe("règles BMC", () => {
   });
   it("refuse une date passée", () => {
     const e = validatePost({ ...base, platforms: ["facebook"], date: "2026-10-01" }, "schedule", now);
-    expect(e.date).toBeDefined();
+    expect(e["date"]).toBeDefined();
   });
   it("Instagram exige au moins 1 média", () => {
-    expect(validatePost({ ...base, platforms: ["instagram"] }, "now", now).instagram).toBeDefined();
+    expect(validatePost({ ...base, platforms: ["instagram"] }, "now", now)["instagram"]).toBeDefined();
   });
   it("TikTok exige au moins 1 vidéo", () => {
     const withImage = { ...base, platforms: ["tiktok" as const], media: [{ id: "1", kind: "image" as const, src: "", name: "" }] };
-    expect(validatePost(withImage, "now", now).tiktok).toBeDefined();
+    expect(validatePost(withImage, "now", now)["tiktok"]).toBeDefined();
     const withVideo = { ...withImage, media: [{ id: "2", kind: "video" as const, src: "", name: "" }] };
-    expect(validatePost(withVideo, "now", now).tiktok).toBeUndefined();
+    expect(validatePost(withVideo, "now", now)["tiktok"]).toBeUndefined();
   });
   it("vérifie le format +212", () => {
     expect(normalizeMaPhone("06 12 34 56 78")).toBe("+212612345678");

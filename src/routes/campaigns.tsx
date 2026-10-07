@@ -161,7 +161,7 @@ function CampaignsPage() {
 function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () => void }) {
   const { contacts, saveCampaign, setCampaignStatus } = useBmc();
   const [c, setC] = useState<Campaign>(initial);
-  const [err, setErr] = useState<Record<string, string>>({});
+  const [err, setErr] = useState<Partial<Record<string, string>>>({});
   const set = (p: Partial<Campaign>) => setC((x) => ({ ...x, ...p }));
   const tpl = WA_TEMPLATES.find((t) => t.id === c.templateId);
   const varNums = tpl ? Array.from(new Set(tpl.body.match(/\{\{(\d)\}\}/g)?.map((m) => m[2]!) ?? [])) : [];
@@ -171,12 +171,12 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
   const preview = tpl ? fillTemplate(tpl.body, Object.fromEntries(Object.entries(c.variables ?? {}).map(([k, v]) => [k, v.replace("{nom}", sample?.name ?? "Youssef").replace("{société}", sample?.company ?? "Sanitaire Atlas")]))) : "";
 
   const finish = (mode: "draft" | "now" | "plan") => {
-    const e: Record<string, string> = {};
-    if (!c.name.trim()) e.name = "Champ requis";
+    const e: Partial<Record<string, string>> = {};
+    if (!c.name.trim()) e["name"] = "Champ requis";
     if (mode !== "draft") {
       if (c.channel === "whatsapp") varNums.forEach((n) => { if (!c.variables?.[n]?.trim()) e[`v${n}`] = "Champ requis"; });
-      if (c.channel === "telegram" && !c.text?.trim()) e.text = "Champ requis";
-      if (mode === "plan" && isPast(c.date, c.time)) e.date = "La date ne peut pas être dans le passé";
+      if (c.channel === "telegram" && !c.text?.trim()) e["text"] = "Champ requis";
+      if (mode === "plan" && isPast(c.date, c.time)) e["date"] = "La date ne peut pas être dans le passé";
     }
     setErr(e);
     if (Object.keys(e).length) return;
@@ -192,7 +192,7 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
         <DialogTitle className="flex items-center gap-2 font-display"><ChannelTag c={c.channel} /> Campagne</DialogTitle>
         <div className="grid gap-6 md:grid-cols-[1fr_300px]">
           <div className="space-y-4">
-            <div><Label className="text-xs">Nom de la campagne</Label><Input value={c.name} onChange={(e) => set({ name: e.target.value })} className="mt-1.5 bg-surface/60" />{err.name && <p className="mt-1 text-[11px] text-destructive">{err.name}</p>}</div>
+            <div><Label className="text-xs">Nom de la campagne</Label><Input value={c.name} onChange={(e) => set({ name: e.target.value })} className="mt-1.5 bg-surface/60" />{err["name"] && <p className="mt-1 text-[11px] text-destructive">{err["name"]}</p>}</div>
             {c.channel === "whatsapp" ? (
               <>
                 <div className="flex gap-2 rounded-xl border border-[var(--brass)]/40 bg-[color-mix(in_oklab,var(--brass)_10%,transparent)] p-3 text-[12px]">
@@ -201,7 +201,7 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
                 </div>
                 <div>
                   <Label className="text-xs">Modèle approuvé</Label>
-                  <Select value={c.templateId} onValueChange={(v) => set({ templateId: v })}>
+                  <Select value={c.templateId ?? ""} onValueChange={(v) => set({ templateId: v })}>
                     <SelectTrigger className="mt-1.5 bg-surface/60"><SelectValue /></SelectTrigger>
                     <SelectContent>{WA_TEMPLATES.map((t) => <SelectItem key={t.id} value={t.id}>{t.name} — {t.category} · {t.language}</SelectItem>)}</SelectContent>
                   </Select>
@@ -231,7 +231,7 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
                     <Button type="button" variant="ghost" size="sm" onClick={() => set({ text: "🔶 Nouveautés BMC : découvrez notre nouvelle gamme de raccords laiton, fabriquée au Maroc et conforme aux normes européennes. Catalogue et tarifs sur demande." })}>Rédiger avec l'IA</Button>
                   </div>
                   <Textarea value={c.text ?? ""} onChange={(e) => set({ text: e.target.value })} className="mt-1.5 min-h-28 bg-surface/60" />
-                  {err.text && <p className="mt-1 text-[11px] text-destructive">{err.text}</p>}
+                  {err["text"] && <p className="mt-1 text-[11px] text-destructive">{err["text"]}</p>}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   {(c.images ?? []).map((src, i) => <img key={i} src={src} alt="" className="h-14 w-14 rounded-lg object-cover" />)}
@@ -246,7 +246,7 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
               </>
             )}
             <div className="grid gap-3 sm:grid-cols-2">
-              <div><Label className="text-xs">Date (si planifiée)</Label><Input type="date" value={c.date} onChange={(e) => set({ date: e.target.value })} className="mt-1.5 bg-surface/60" />{err.date && <p className="mt-1 text-[11px] text-destructive">{err.date}</p>}</div>
+              <div><Label className="text-xs">Date (si planifiée)</Label><Input type="date" value={c.date} onChange={(e) => set({ date: e.target.value })} className="mt-1.5 bg-surface/60" />{err["date"] && <p className="mt-1 text-[11px] text-destructive">{err["date"]}</p>}</div>
               <div><Label className="text-xs">Heure</Label><Input type="time" value={c.time} onChange={(e) => set({ time: e.target.value })} className="mt-1.5 bg-surface/60" /></div>
             </div>
           </div>

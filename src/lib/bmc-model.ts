@@ -289,13 +289,14 @@ export const nextGenerationDate = (frequency: FrequencyId, count: number, from: 
 /* ------------------------------------------------------------------ */
 
 export type PostDraft = Omit<Post, "id">;
+export type PostErrors = Partial<Record<"description" | "media" | "platforms" | "instagram" | "tiktok" | "date" | "time", string>>;
 
 export function validatePost(
   draft: PostDraft,
   mode: "draft" | "schedule" | "now",
   now = new Date(),
-): Record<string, string> {
-  const errors: Record<string, string> = {};
+): PostErrors {
+  const errors: PostErrors = {};
   if (mode === "draft") return errors;
   if (!draft.description.trim()) errors.description = "Champ requis";
   if (!draft.platforms.length) errors.platforms = "Champ requis : choisissez au moins un réseau";
