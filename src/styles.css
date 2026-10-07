@@ -465,8 +465,8 @@ html.theme-transition *::after {
 
 .dark .panel { box-shadow: var(--shadow-elegant), inset 0 1px 0 color-mix(in oklab, white 6%, transparent); }
 
-button[data-slot="button"], [data-slot="button"] { position: relative; overflow: hidden; }
-[data-slot="button"]::after {
+.bmc-btn { position: relative; overflow: hidden; }
+.bmc-btn::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -474,7 +474,7 @@ button[data-slot="button"], [data-slot="button"] { position: relative; overflow:
   background: linear-gradient(110deg, transparent 30%, color-mix(in oklab, white 35%, transparent) 50%, transparent 70%);
   transform: translateX(-120%);
 }
-[data-slot="button"]:hover::after { transform: translateX(120%); transition: transform 0.8s var(--ease-premium); }
+.bmc-btn:hover::after { transform: translateX(120%); transition: transform 0.8s var(--ease-premium); }
 
 @media (prefers-reduced-motion: reduce) {
   *,

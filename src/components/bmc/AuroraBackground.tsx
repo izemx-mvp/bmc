@@ -59,7 +59,7 @@ export function AuroraBackground({ intense = false }: { intense?: boolean }) {
       ctx.lineWidth = 0.6;
       for (let i = 0; i < pts.length; i++) {
         for (let j = i + 1; j < pts.length; j++) {
-          const a = pts[i], b = pts[j];
+          const a = pts[i]!, b = pts[j]!;
           const dx = a.x - b.x, dy = a.y - b.y, d = Math.sqrt(dx * dx + dy * dy);
           if (d < 130) {
             ctx.globalAlpha = (1 - d / 130) * linkAlpha;
