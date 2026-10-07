@@ -388,6 +388,94 @@
   animation: bmc-spin-slow 18s linear infinite;
 }
 
+/* ---------- Premium layer ---------- */
+
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition: background-color 0.5s var(--ease-premium), border-color 0.5s var(--ease-premium), color 0.5s var(--ease-premium) !important;
+}
+
+.bmc-grid {
+  opacity: 0.12;
+  background-image:
+    linear-gradient(to right, color-mix(in oklab, var(--foreground) 22%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in oklab, var(--foreground) 22%, transparent) 1px, transparent 1px);
+  background-size: 72px 72px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black, transparent 78%);
+  animation: bmc-grid-pan 40s linear infinite;
+}
+@keyframes bmc-grid-pan { to { background-position: 72px 72px, 72px 72px; } }
+
+.bmc-header::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, var(--copper-glow), var(--brass-light), transparent);
+  background-size: 200% 100%;
+  animation: bmc-line 6s linear infinite;
+  opacity: 0.7;
+}
+@keyframes bmc-line { from { background-position: 200% 0; } to { background-position: -200% 0; } }
+
+.bmc-page { animation: bmc-page-in 0.6s var(--ease-premium) both; }
+@keyframes bmc-page-in {
+  from { opacity: 0; transform: translateY(14px); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+.bmc-page .panel { animation: bmc-rise 0.7s var(--ease-premium) both; }
+.bmc-page .panel:nth-child(2) { animation-delay: 60ms; }
+.bmc-page .panel:nth-child(3) { animation-delay: 120ms; }
+.bmc-page .panel:nth-child(4) { animation-delay: 180ms; }
+.bmc-page .panel:nth-child(n + 5) { animation-delay: 240ms; }
+
+.bmc-title {
+  background: linear-gradient(100deg, var(--foreground) 40%, var(--copper-glow) 50%, var(--foreground) 60%);
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: bmc-title-shine 7s ease-in-out infinite;
+}
+@keyframes bmc-title-shine { 0%, 100% { background-position: 100% 0; } 50% { background-position: 0 0; } }
+
+/* glass + animated edge for every panel */
+.panel {
+  position: relative;
+  backdrop-filter: blur(14px) saturate(140%);
+  background:
+    linear-gradient(160deg, color-mix(in oklab, var(--surface-2) 80%, transparent), color-mix(in oklab, var(--surface) 70%, transparent)) !important;
+}
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  pointer-events: none;
+  background: linear-gradient(135deg, color-mix(in oklab, var(--copper-glow) 55%, transparent), transparent 35%, transparent 65%, color-mix(in oklab, var(--brass-light) 45%, transparent));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  opacity: 0.45;
+  transition: opacity 0.4s var(--ease-premium);
+}
+.panel:hover::before { opacity: 1; }
+
+.dark .panel { box-shadow: var(--shadow-elegant), inset 0 1px 0 color-mix(in oklab, white 6%, transparent); }
+
+button[data-slot="button"], [data-slot="button"] { position: relative; overflow: hidden; }
+[data-slot="button"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(110deg, transparent 30%, color-mix(in oklab, white 35%, transparent) 50%, transparent 70%);
+  transform: translateX(-120%);
+}
+[data-slot="button"]:hover::after { transform: translateX(120%); transition: transform 0.8s var(--ease-premium); }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
