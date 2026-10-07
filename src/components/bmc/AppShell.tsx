@@ -1,6 +1,6 @@
 import { useEffect, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { BarChart3, Clapperboard, LayoutDashboard, LogOut, Megaphone, MessageSquare, Sparkles } from "lucide-react";
+import { BarChart3, LayoutDashboard, LogOut, Megaphone, MessageSquare, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ import { ThemeToggle } from "./ThemeToggle";
 const NAV = [
   { to: "/dashboard", match: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/cm/posts", match: "/cm", label: "Community Manager AI", icon: Sparkles },
-  { to: "/studio", match: "/studio", label: "Studio vidéo", icon: Clapperboard },
   { to: "/ads", match: "/ads", label: "Publicités", icon: Megaphone },
   { to: "/campaigns", match: "/campaigns", label: "Campagnes messages", icon: MessageSquare },
   { to: "/stats", match: "/stats", label: "Statistiques", icon: BarChart3 },

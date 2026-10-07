@@ -3,15 +3,15 @@ import logoMark from "@/assets/bmc-logo.png";
 import logoWhite from "@/assets/bmc-logo-white.png";
 
 export function BmcLogo({ size = 40, white = false }: { size?: number; white?: boolean }) {
+  const dimensions = { height: size, width: "auto" };
+  if (white) {
+    return <img src={logoWhite} alt="BMC — Benomar Metal Company" width={size * 2.48} height={size} style={dimensions} className="shrink-0 object-contain" />;
+  }
   return (
-    <img
-      src={white ? logoWhite : logoMark}
-      alt="BMC — Benomar Metal Company"
-      width={size * 2.48}
-      height={size}
-      style={{ height: size, width: "auto" }}
-      className="shrink-0 object-contain"
-    />
+    <span className="shrink-0">
+      <img src={logoMark} alt="BMC — Benomar Metal Company" width={size * 2.48} height={size} style={dimensions} className="block object-contain dark:hidden" />
+      <img src={logoWhite} alt="" aria-hidden="true" width={size * 2.48} height={size} style={dimensions} className="hidden object-contain dark:block" />
+    </span>
   );
 }
 
