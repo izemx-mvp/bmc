@@ -15,11 +15,12 @@ import { Route as CampaignsRouteImport } from './routes/campaigns'
 import { Route as CmRouteImport } from './routes/cm'
 import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as StatsRouteImport } from './routes/stats'
-import { Route as StudioRouteImport } from './routes/studio'
 import { Route as CmIndexRouteImport } from './routes/cm.index'
 import { Route as CmCalendarRouteImport } from './routes/cm.calendar'
 import { Route as CmConfigRouteImport } from './routes/cm.config'
 import { Route as CmPostsRouteImport } from './routes/cm.posts'
+import { Route as CmStudioImageRouteImport } from './routes/cm.studio-image'
+import { Route as CmStudioVideoRouteImport } from './routes/cm.studio-video'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -51,11 +52,6 @@ const StatsRoute = StatsRouteImport.update({
   path: '/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
-const StudioRoute = StudioRouteImport.update({
-  id: '/studio',
-  path: '/studio',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const CmIndexRoute = CmIndexRouteImport.update({
   id: '/',
   path: '/',
@@ -76,6 +72,16 @@ const CmPostsRoute = CmPostsRouteImport.update({
   path: '/posts',
   getParentRoute: () => CmRoute,
 } as any)
+const CmStudioImageRoute = CmStudioImageRouteImport.update({
+  id: '/studio-image',
+  path: '/studio-image',
+  getParentRoute: () => CmRoute,
+} as any)
+const CmStudioVideoRoute = CmStudioVideoRouteImport.update({
+  id: '/studio-video',
+  path: '/studio-video',
+  getParentRoute: () => CmRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -84,10 +90,11 @@ export interface FileRoutesByFullPath {
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/stats': typeof StatsRoute
-  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
+  '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm/': typeof CmIndexRoute
 }
 export interface FileRoutesByTo {
@@ -96,10 +103,11 @@ export interface FileRoutesByTo {
   '/campaigns': typeof CampaignsRoute
   '/dashboard': typeof DashboardRoute
   '/stats': typeof StatsRoute
-  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
+  '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm': typeof CmIndexRoute
 }
 export interface FileRoutesById {
@@ -110,10 +118,11 @@ export interface FileRoutesById {
   '/cm': typeof CmRouteWithChildren
   '/dashboard': typeof DashboardRoute
   '/stats': typeof StatsRoute
-  '/studio': typeof StudioRoute
   '/cm/calendar': typeof CmCalendarRoute
   '/cm/config': typeof CmConfigRoute
   '/cm/posts': typeof CmPostsRoute
+  '/cm/studio-image': typeof CmStudioImageRoute
+  '/cm/studio-video': typeof CmStudioVideoRoute
   '/cm/': typeof CmIndexRoute
 }
 export interface FileRouteTypes {
@@ -125,10 +134,11 @@ export interface FileRouteTypes {
     | '/cm'
     | '/dashboard'
     | '/stats'
-    | '/studio'
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
+    | '/cm/studio-video'
     | '/cm/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -137,10 +147,11 @@ export interface FileRouteTypes {
     | '/campaigns'
     | '/dashboard'
     | '/stats'
-    | '/studio'
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
+    | '/cm/studio-video'
     | '/cm'
   id:
     | '__root__'
@@ -150,10 +161,11 @@ export interface FileRouteTypes {
     | '/cm'
     | '/dashboard'
     | '/stats'
-    | '/studio'
     | '/cm/calendar'
     | '/cm/config'
     | '/cm/posts'
+    | '/cm/studio-image'
+    | '/cm/studio-video'
     | '/cm/'
   fileRoutesById: FileRoutesById
 }
@@ -164,7 +176,6 @@ export interface RootRouteChildren {
   CmRoute: typeof CmRouteWithChildren
   DashboardRoute: typeof DashboardRoute
   StatsRoute: typeof StatsRoute
-  StudioRoute: typeof StudioRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -211,13 +222,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof StatsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/studio': {
-      id: '/studio'
-      path: '/studio'
-      fullPath: '/studio'
-      preLoaderRoute: typeof StudioRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/cm/': {
       id: '/cm/'
       path: '/'
@@ -246,6 +250,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CmPostsRouteImport
       parentRoute: typeof CmRoute
     }
+    '/cm/studio-image': {
+      id: '/cm/studio-image'
+      path: '/studio-image'
+      fullPath: '/cm/studio-image'
+      preLoaderRoute: typeof CmStudioImageRouteImport
+      parentRoute: typeof CmRoute
+    }
+    '/cm/studio-video': {
+      id: '/cm/studio-video'
+      path: '/studio-video'
+      fullPath: '/cm/studio-video'
+      preLoaderRoute: typeof CmStudioVideoRouteImport
+      parentRoute: typeof CmRoute
+    }
   }
 }
 
@@ -253,6 +271,8 @@ interface CmRouteChildren {
   CmCalendarRoute: typeof CmCalendarRoute
   CmConfigRoute: typeof CmConfigRoute
   CmPostsRoute: typeof CmPostsRoute
+  CmStudioImageRoute: typeof CmStudioImageRoute
+  CmStudioVideoRoute: typeof CmStudioVideoRoute
   CmIndexRoute: typeof CmIndexRoute
 }
 
@@ -260,6 +280,8 @@ const CmRouteChildren: CmRouteChildren = {
   CmCalendarRoute: CmCalendarRoute,
   CmConfigRoute: CmConfigRoute,
   CmPostsRoute: CmPostsRoute,
+  CmStudioImageRoute: CmStudioImageRoute,
+  CmStudioVideoRoute: CmStudioVideoRoute,
   CmIndexRoute: CmIndexRoute,
 }
 
@@ -272,7 +294,6 @@ const rootRouteChildren: RootRouteChildren = {
   CmRoute: CmRouteWithChildren,
   DashboardRoute: DashboardRoute,
   StatsRoute: StatsRoute,
-  StudioRoute: StudioRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

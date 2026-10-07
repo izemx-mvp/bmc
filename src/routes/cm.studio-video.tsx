@@ -29,7 +29,7 @@ import {
   type VideoFormat,
 } from "@/lib/bmc-store";
 
-export const Route = createFileRoute("/studio")({
+export const Route = createFileRoute("/cm/studio-video")({
   head: () => ({
     meta: [
       { title: "Studio vidéo — BMC Community Manager AI" },

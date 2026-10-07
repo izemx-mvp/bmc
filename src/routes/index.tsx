@@ -78,18 +78,6 @@ function LoginPage() {
             Créez, prévisualisez, programmez et publiez vos contenus sur toutes vos plateformes —
             avec la précision industrielle BMC et la puissance de l'IA.
           </p>
-          <div className="mt-10 grid max-w-md grid-cols-3 gap-3">
-            {[
-              ["124", "Publications"],
-              ["4", "Plateformes"],
-              ["98%", "Taux de diffusion"],
-            ].map(([v, l]) => (
-              <div key={l} className="panel p-4">
-                <p className="font-display text-2xl font-bold text-copper-gradient">{v}</p>
-                <p className="mt-1 text-[11px] uppercase tracking-wider text-muted-foreground">{l}</p>
-              </div>
-            ))}
-          </div>
         </section>
 
         <section className="glass animate-scale-in grain relative overflow-hidden rounded-3xl p-7 sm:p-9">

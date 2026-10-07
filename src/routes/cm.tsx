@@ -1,5 +1,5 @@
 import { createFileRoute, Link, Outlet, useRouterState } from "@tanstack/react-router";
-import { CalendarDays, LayoutGrid, Settings2 } from "lucide-react";
+import { CalendarDays, Clapperboard, Images, LayoutGrid, Settings2 } from "lucide-react";
 
 import { AppShell } from "@/components/bmc/AppShell";
 import { cn } from "@/lib/utils";
@@ -11,6 +11,8 @@ export const Route = createFileRoute("/cm")({
 const TABS = [
   { to: "/cm/posts", label: "Posts", icon: LayoutGrid },
   { to: "/cm/calendar", label: "Calendrier", icon: CalendarDays },
+  { to: "/cm/studio-image", label: "Studio image", icon: Images },
+  { to: "/cm/studio-video", label: "Studio vidéo", icon: Clapperboard },
   { to: "/cm/config", label: "Configuration", icon: Settings2 },
 ] as const;
 
@@ -19,7 +21,7 @@ function CmLayout() {
 
   return (
     <AppShell>
-      <div className="mb-8 inline-flex animate-rise gap-1 rounded-2xl border border-border/70 bg-surface/60 p-1.5 backdrop-blur">
+      <div className="mb-8 flex w-fit max-w-full animate-rise flex-wrap gap-1 rounded-2xl border border-border/70 bg-surface/60 p-1.5 backdrop-blur">
         {TABS.map((t) => {
           const active = pathname === t.to;
           return (
