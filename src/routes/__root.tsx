@@ -130,6 +130,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        <script dangerouslySetInnerHTML={{ __html: "try{if(localStorage.getItem('bmc-theme')==='dark')document.documentElement.classList.add('dark')}catch(e){}" }} />
         {children}
         <Scripts />
       </body>
