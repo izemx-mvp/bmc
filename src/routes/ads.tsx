@@ -42,6 +42,8 @@ export const Route = createFileRoute("/ads")({
       { name: "description", content: "Campagnes publicitaires BMC sur Meta, TikTok et LinkedIn : objectifs, budget, audience, placements et résultats." },
       { property: "og:title", content: "Publicités — BMC Community Manager AI" },
       { property: "og:description", content: "Créez, planifiez et suivez les publicités BMC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: AdsPage,

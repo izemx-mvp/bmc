@@ -40,6 +40,8 @@ export const Route = createFileRoute("/campaigns")({
       { name: "description", content: "Campagnes WhatsApp (modèles approuvés) et Telegram de BMC : contacts, listes, envoi, planification et suivi." },
       { property: "og:title", content: "Campagnes messages — BMC Community Manager AI" },
       { property: "og:description", content: "WhatsApp et Telegram pour les distributeurs, installateurs et clients export de BMC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CampaignsPage,

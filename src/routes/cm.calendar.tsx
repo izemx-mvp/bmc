@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Megaphone, MessageSquare, Newspaper } from "lucide-react";
+import { CalendarRange, ChevronLeft, ChevronRight, Megaphone, MessageSquare, Newspaper } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/bmc/AppShell";
@@ -18,9 +18,11 @@ export const Route = createFileRoute("/cm/calendar")({
   head: () => ({
     meta: [
       { title: "Calendrier — BMC Community Manager AI" },
-      { name: "description", content: "Calendrier éditorial BMC : publications, publicités et campagnes de messages en vues mois, semaine et jour." },
+      { name: "description", content: "Calendrier éditorial BMC : publications, publicités et campagnes de messages en vues mois, semaine, jour et agenda." },
       { property: "og:title", content: "Calendrier — BMC Community Manager AI" },
       { property: "og:description", content: "Calendrier de contenu BMC : toutes les diffusions au même endroit." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CalendarPage,
@@ -47,7 +49,7 @@ type Ev = { kind: "post"; item: Post; time: string } | { kind: "ad"; item: Ad; t
 function CalendarPage() {
   const { posts, ads, campaigns, updatePost } = useBmc();
   const [cursor, setCursor] = useState(new Date());
-  const [view, setView] = useState<"month" | "week" | "day">("month");
+  const [view, setView] = useState<"month" | "week" | "day" | "agenda">("month");
   const [filters, setFilters] = useState<Record<Kind, boolean>>({ post: true, ad: true, campaign: true });
   const [post, setPost] = useState<Post | null>(null);
   const [ad, setAd] = useState<Ad | null>(null);
@@ -57,6 +59,13 @@ function CalendarPage() {
 
   const range = useMemo(() => {
     if (view === "day") return [new Date(cursor)];
+    if (view === "agenda") {
+      return Array.from({ length: 14 }, (_, i) => {
+        const d = new Date(cursor);
+        d.setDate(cursor.getDate() + i);
+        return d;
+      });
+    }
     const start = view === "week" ? startOfWeek(cursor) : startOfWeek(new Date(cursor.getFullYear(), cursor.getMonth(), 1));
     return Array.from({ length: view === "week" ? 7 : 42 }, (_, i) => {
       const d = new Date(start);
@@ -80,7 +89,7 @@ function CalendarPage() {
   const shift = (dir: number) => {
     const d = new Date(cursor);
     if (view === "month") d.setMonth(d.getMonth() + dir);
-    else d.setDate(d.getDate() + dir * (view === "week" ? 7 : 1));
+    else d.setDate(d.getDate() + dir * (view === "week" ? 7 : view === "agenda" ? 14 : 1));
     setCursor(d);
   };
 
@@ -135,9 +144,9 @@ function CalendarPage() {
         description="Publications, publicités et campagnes de messages réunies. Glissez une publication pour la déplacer."
         actions={
           <div className="flex gap-1 rounded-xl border border-border/70 bg-surface/60 p-1">
-            {(["month", "week", "day"] as const).map((v) => (
+            {(["month", "week", "day", "agenda"] as const).map((v) => (
               <button key={v} type="button" onClick={() => setView(v)} className={cn("rounded-lg px-3 py-1.5 text-xs", view === v ? "copper-gradient font-semibold text-primary-foreground" : "text-muted-foreground")}>
-                {v === "month" ? "Mois" : v === "week" ? "Semaine" : "Jour"}
+                {v === "month" ? "Mois" : v === "week" ? "Semaine" : v === "day" ? "Jour" : "Agenda"}
               </button>
             ))}
           </div>
@@ -159,7 +168,7 @@ function CalendarPage() {
             <Button variant="ghost" size="sm" onClick={() => setCursor(new Date())}>Aujourd'hui</Button>
           </div>
           <h2 className="font-display text-lg font-semibold">
-            {view === "day" ? `${String(cursor.getDate()).padStart(2, "0")}/${String(cursor.getMonth() + 1).padStart(2, "0")}/${cursor.getFullYear()}` : `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`}
+             {view === "day" ? `${String(cursor.getDate()).padStart(2, "0")}/${String(cursor.getMonth() + 1).padStart(2, "0")}/${cursor.getFullYear()}` : view === "agenda" ? "14 prochains jours" : `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`}
           </h2>
         </div>
 
@@ -167,6 +176,33 @@ function CalendarPage() {
           <div className="space-y-3 p-4" onDragOver={(e) => e.preventDefault()}>
             {eventsOn(toIso(cursor)).map((e) => <Chip key={e.kind + e.item.id} e={e} big />)}
             {!eventsOn(toIso(cursor)).length && <p className="py-16 text-center text-sm text-muted-foreground">Rien de prévu ce jour-là.</p>}
+          </div>
+        ) : view === "agenda" ? (
+          <div className="divide-y divide-border/60">
+            {range.map((d) => {
+              const k = toIso(d);
+              const list = eventsOn(k);
+              return (
+                <div key={k} className="grid gap-3 p-4 sm:grid-cols-[150px_1fr]" onDragOver={(event) => event.preventDefault()} onDrop={() => drop(k)}>
+                  <div className="flex items-center gap-3 sm:items-start">
+                    <span className={cn("flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border font-display text-lg font-bold", k === today ? "border-primary/50 bg-primary/10 text-primary" : "border-border bg-surface-2")}>
+                      {String(d.getDate()).padStart(2, "0")}
+                    </span>
+                    <div>
+                      <p className="text-sm font-semibold">{DAYS[(d.getDay() + 6) % 7]}.</p>
+                      <p className="text-xs text-muted-foreground">{MONTHS[d.getMonth()]} {d.getFullYear()}</p>
+                    </div>
+                  </div>
+                  {list.length ? (
+                    <div className="grid gap-2 lg:grid-cols-2">
+                      {list.map((event) => <Chip key={event.kind + event.item.id} e={event} big />)}
+                    </div>
+                  ) : (
+                    <div className="flex min-h-12 items-center gap-2 text-sm text-muted-foreground"><CalendarRange className="h-4 w-4" /> Aucun contenu prévu</div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="overflow-x-auto">
