@@ -18,9 +18,11 @@ export const Route = createFileRoute("/cm/calendar")({
   head: () => ({
     meta: [
       { title: "Calendrier — BMC Community Manager AI" },
-      { name: "description", content: "Calendrier éditorial BMC : publications, publicités et campagnes de messages en vues mois, semaine et jour." },
+      { name: "description", content: "Calendrier éditorial BMC : publications, publicités et campagnes de messages en vues mois, semaine, jour et agenda." },
       { property: "og:title", content: "Calendrier — BMC Community Manager AI" },
       { property: "og:description", content: "Calendrier de contenu BMC : toutes les diffusions au même endroit." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: CalendarPage,

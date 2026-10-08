@@ -35,6 +35,8 @@ export const Route = createFileRoute("/cm/config")({
       { name: "description", content: "Identité, objectifs et réglages de génération IA par réseau : ton, longueur, fréquence, langue et génération automatique." },
       { property: "og:title", content: "Configuration — BMC Community Manager AI" },
       { property: "og:description", content: "Les paramètres qui alimentent la génération IA des publications BMC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: ConfigPage,

@@ -17,6 +17,8 @@ export const Route = createFileRoute("/stats")({
       { name: "description", content: "Résultats des publicités BMC par réseau, campagnes WhatsApp et Telegram, et consommation IA." },
       { property: "og:title", content: "Statistiques — BMC Community Manager AI" },
       { property: "og:description", content: "Publicités, campagnes de messages et consommation IA de BMC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: StatsPage,

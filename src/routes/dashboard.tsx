@@ -14,6 +14,8 @@ export const Route = createFileRoute("/dashboard")({
       { name: "description", content: "Vue synthétique de l'activité BMC : publications, publicités actives, campagnes de messages et vidéos générées." },
       { property: "og:title", content: "Dashboard — BMC Community Manager AI" },
       { property: "og:description", content: "Le centre de pilotage BMC : compteurs, prochaines diffusions et activité récente." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: DashboardPage,

@@ -21,6 +21,8 @@ export const Route = createFileRoute("/cm/posts")({
       { name: "description", content: "Gérez les publications BMC : brouillons, programmées, publiées, en échec, création manuelle ou génération IA." },
       { property: "og:title", content: "Posts — BMC Community Manager AI" },
       { property: "og:description", content: "Centre de gestion des publications social media BMC." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: PostsPage,
