@@ -3,7 +3,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { Captions, Crop, Film, Megaphone, Mic, Newspaper, Trash2, Wand2 } from "lucide-react";
 import { toast } from "sonner";
 
-import { AppShell, PageHeader } from "@/components/bmc/AppShell";
+import { PageHeader } from "@/components/bmc/AppShell";
 import { ConfirmDialog, FakePlayer, Pill } from "@/components/bmc/bits";
 import { VOICES } from "@/components/bmc/MediaGenerators";
 import { Button } from "@/components/ui/button";
@@ -36,6 +36,8 @@ export const Route = createFileRoute("/cm/studio-video")({
       { name: "description", content: "Historique des vidéos générées et importées par BMC, avec retouches, voix off, sous-titres et versions." },
       { property: "og:title", content: "Studio vidéo — BMC Community Manager AI" },
       { property: "og:description", content: "Toutes les vidéos BMC : historique, versions et retouches." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
   component: StudioPage,
@@ -71,7 +73,7 @@ function StudioPage() {
   );
 
   return (
-    <AppShell>
+    <>
       <PageHeader eyebrow="Historique & retouches" title="Studio vidéo" description="Toutes les vidéos générées ou importées. Les vidéos se créent depuis une publication." />
       <div className="panel mb-6 flex flex-wrap gap-3 p-3">
         <F value={format} set={setFormat} items={[["all", "Tous formats"], ["16:9", "16:9"], ["9:16", "9:16"], ["1:1", "1:1"]]} />
@@ -110,7 +112,7 @@ function StudioPage() {
         {!list.length && <p className="col-span-full py-16 text-center text-sm text-muted-foreground">Aucune vidéo ne correspond à ces filtres.</p>}
       </div>
       <VideoSheet video={videos.find((v) => v.id === openId) ?? null} onClose={() => setOpenId(null)} />
-    </AppShell>
+    </>
   );
 }
 
