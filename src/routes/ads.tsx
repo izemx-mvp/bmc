@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { AppShell, PageHeader } from "@/components/bmc/AppShell";
 import { PlatformChip } from "@/components/bmc/branding";
 import { ConfirmDialog, MediaThumb, Pill, type Tone } from "@/components/bmc/bits";
+import { Pagination } from "@/components/bmc/Pagination";
 import { LibraryPicker } from "@/components/bmc/MediaGenerators";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
@@ -127,12 +128,15 @@ export function AdDetails({ ad, onClose }: { ad: Ad | null; onClose: () => void 
 }
 
 function AdsPage() {
+  const pageSize = 6;
   const { ads, deleteAd } = useBmc();
   const { video } = Route.useSearch();
   const [editing, setEditing] = useState<Ad | null>(null);
   const [del, setDel] = useState<Ad | null>(null);
   const { actions, dialog } = useAdActions();
   const { videos } = useBmc();
+  const [page, setPage] = useState(1);
+  const safePage = Math.min(page, Math.max(1, Math.ceil(ads.length / pageSize)));
 
   useEffect(() => {
     const v = videos.find((x) => x.id === video);
@@ -144,7 +148,7 @@ function AdsPage() {
     <AppShell>
       <PageHeader eyebrow="Meta · TikTok · LinkedIn" title="Publicités" description="Créez vos annonces avec les visuels et vidéos déjà générés, puis lancez ou planifiez leur diffusion." actions={<Button size="lg" onClick={() => setEditing(blankAd())}><Plus className="h-4 w-4" /> Nouvelle publicité</Button>} />
       <div className="grid gap-5 lg:grid-cols-2">
-        {ads.map((ad) => (
+        {ads.slice((safePage - 1) * pageSize, safePage * pageSize).map((ad) => (
           <article key={ad.id} className="panel panel-hover space-y-4 p-5">
             <div className="flex items-start gap-3">
               {ad.creatives[0] ? <MediaThumb m={ad.creatives[0]} className="h-16 w-16 shrink-0" /> : <div className="h-16 w-16 shrink-0 rounded-lg bg-surface-2" />}
@@ -160,6 +164,7 @@ function AdsPage() {
           </article>
         ))}
       </div>
+      <Pagination page={safePage} total={ads.length} pageSize={pageSize} onPageChange={setPage} />
       {editing && <AdEditor ad={editing} onClose={() => setEditing(null)} />}
       {dialog}
       <ConfirmDialog open={!!del} onOpenChange={(v) => !v && setDel(null)} title="Supprimer cette publicité ?" confirmLabel="Supprimer" onConfirm={() => { if (del) deleteAd(del.id); setDel(null); }} />

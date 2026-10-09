@@ -6,6 +6,7 @@ import { toast } from "sonner";
 
 import { AppShell, PageHeader } from "@/components/bmc/AppShell";
 import { ConfirmDialog, Pill, type Tone } from "@/components/bmc/bits";
+import { Pagination } from "@/components/bmc/Pagination";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -99,11 +100,14 @@ export function CampaignDetails({ campaign: c, onClose }: { campaign: Campaign |
 }
 
 function CampaignsPage() {
+  const pageSize = 6;
   const { campaigns, deleteCampaign } = useBmc();
   const [tab, setTab] = useState<"campaigns" | "contacts">("campaigns");
   const [editing, setEditing] = useState<Campaign | null>(null);
   const [details, setDetails] = useState<Campaign | null>(null);
   const [del, setDel] = useState<Campaign | null>(null);
+  const [page, setPage] = useState(1);
+  const safePage = Math.min(page, Math.max(1, Math.ceil(campaigns.length / pageSize)));
 
   const blank = (channel: Campaign["channel"]): Campaign => ({
     id: newId(), name: "", channel, list: channel === "whatsapp" ? "Distributeurs" : "Abonnés du bot", date: isoFromToday(1), time: "10:00", status: "draft",
@@ -134,7 +138,7 @@ function CampaignsPage() {
 
       {tab === "contacts" ? <ContactsPanel /> : (
         <div className="grid gap-5 lg:grid-cols-2">
-          {campaigns.map((c) => (
+          {campaigns.slice((safePage - 1) * pageSize, safePage * pageSize).map((c) => (
             <article key={c.id} className="panel panel-hover space-y-3 p-5">
               <div className="flex items-start justify-between gap-3">
                 <button type="button" onClick={() => setDetails(c)} className="min-w-0 text-left">
@@ -153,6 +157,7 @@ function CampaignsPage() {
           ))}
         </div>
       )}
+      {tab === "campaigns" && <Pagination page={safePage} total={campaigns.length} pageSize={pageSize} onPageChange={setPage} />}
       {editing && <CampaignEditor initial={editing} onClose={() => setEditing(null)} />}
       <CampaignDetails campaign={details ? campaigns.find((c) => c.id === details.id) ?? null : null} onClose={() => setDetails(null)} />
       <ConfirmDialog open={!!del} onOpenChange={(v) => !v && setDel(null)} title="Supprimer cette campagne ?" confirmLabel="Supprimer" onConfirm={() => { if (del) deleteCampaign(del.id); setDel(null); }} />
@@ -280,12 +285,15 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
 type ImportReport = { added: number; merged: number; invalid: { row: number; name: string; phone: string }[] };
 
 function ContactsPanel() {
+  const pageSize = 15;
   const { contacts, setContacts } = useBmc();
   const [list, setList] = useState("all");
   const [report, setReport] = useState<ImportReport | null>(null);
   const [importList, setImportList] = useState(CONTACT_LISTS[0]!);
+  const [page, setPage] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
   const shown = useMemo(() => contacts.filter((c) => list === "all" || c.lists.includes(list)), [contacts, list]);
+  const safePage = Math.min(page, Math.max(1, Math.ceil(shown.length / pageSize)));
 
   const importFile = async (f: File) => {
     const XLSX = await import("xlsx");
@@ -332,7 +340,7 @@ function ContactsPanel() {
       <div className="panel flex flex-wrap items-center gap-3 p-3">
         <div className="flex flex-wrap gap-1.5">
           {["all", ...CONTACT_LISTS].map((l) => (
-            <button key={l} type="button" onClick={() => setList(l)} className={cn("rounded-full border px-3 py-1.5 text-xs", list === l ? "border-primary/60 bg-primary/10 text-primary" : "border-border text-muted-foreground")}>
+            <button key={l} type="button" onClick={() => { setList(l); setPage(1); }} className={cn("rounded-full border px-3 py-1.5 text-xs", list === l ? "border-primary/60 bg-primary/10 text-primary" : "border-border text-muted-foreground")}>
               {l === "all" ? `Tous (${contacts.length})` : `${l} (${contacts.filter((c) => c.lists.includes(l)).length})`}
             </button>
           ))}
@@ -355,7 +363,7 @@ function ContactsPanel() {
         <table className="w-full min-w-[720px] text-sm">
           <thead><tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground"><th className="p-3">Nom</th><th className="p-3">Société</th><th className="p-3">Téléphone</th><th className="p-3">Catégorie</th><th className="p-3">Listes</th><th className="p-3">Statut</th></tr></thead>
           <tbody>
-            {shown.map((c) => (
+            {shown.slice((safePage - 1) * pageSize, safePage * pageSize).map((c) => (
               <tr key={c.id} className="border-b border-border/50 hover:bg-surface-2/40">
                 <td className="p-3 font-medium">{c.name}</td><td className="p-3">{c.company}</td><td className="p-3 font-mono text-[12px]">{fmtPhone(c.phone)}</td><td className="p-3">{c.category}</td><td className="p-3 text-[12px]">{c.lists.join(", ")}</td><td className="p-3">{status(c)}</td>
               </tr>
@@ -363,6 +371,7 @@ function ContactsPanel() {
           </tbody>
         </table>
       </div>
+      <Pagination page={safePage} total={shown.length} pageSize={pageSize} onPageChange={setPage} />
     </div>
   );
 }

@@ -5,6 +5,7 @@ import { Clapperboard, ImageIcon, Megaphone, MessageSquare, Send, Trophy, Wand2 
 
 import { AppShell, PageHeader } from "@/components/bmc/AppShell";
 import { Counter, Section } from "@/components/bmc/bits";
+import { Pagination } from "@/components/bmc/Pagination";
 import { AdStatusBadge, NetworkChips } from "@/routes/ads";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -37,10 +38,12 @@ function adShare(ad: Ad, from: string, to: string) {
 const tooltipStyle = { background: "var(--popover)", border: "1px solid var(--border)", borderRadius: 12, fontSize: 12 };
 
 function StatsPage() {
+  const pageSize = 10;
   const { ads, campaigns, aiUsage } = useBmc();
   const [period, setPeriod] = useState<"7" | "30" | "custom">("30");
   const [from, setFrom] = useState(isoFromToday(-30));
   const [to, setTo] = useState(toIso(new Date()));
+  const [page, setPage] = useState(1);
   const range = period === "custom" ? { from, to } : { from: isoFromToday(-Number(period)), to: toIso(new Date()) };
 
   const adRows = useMemo(
@@ -58,6 +61,7 @@ function StatsPage() {
     return { name: n.id === "meta" ? "Meta" : n.label, Affichages: sum("impressions"), Clics: sum("clicks"), Dépense: sum("spend"), Couverture: sum("reach") };
   });
   const ranking = adRows.filter((x) => x.r.clicks > 0).sort((a, b) => b.r.clicks / Math.max(1, b.r.spend) - a.r.clicks / Math.max(1, a.r.spend));
+  const safePage = Math.min(page, Math.max(1, Math.ceil(adRows.length / pageSize)));
 
   const inRange = (d: string) => d >= range.from && d <= range.to;
   const sent = campaigns.filter((c) => c.status === "sent" && inRange(c.date));
@@ -122,7 +126,7 @@ function StatsPage() {
         <table className="w-full min-w-[760px] text-sm">
           <thead><tr className="border-b border-border text-left text-[11px] uppercase tracking-wider text-muted-foreground"><th className="p-2">Publicité</th><th className="p-2">Statut</th><th className="p-2 text-right">Couverture</th><th className="p-2 text-right">Affichages</th><th className="p-2 text-right">Clics</th><th className="p-2 text-right">Dépense</th><th className="p-2 text-right">Coût / résultat</th></tr></thead>
           <tbody>
-            {adRows.map(({ ad, r }) => (
+            {adRows.slice((safePage - 1) * pageSize, safePage * pageSize).map(({ ad, r }) => (
               <tr key={ad.id} className="border-b border-border/50">
                 <td className="p-2"><span className="flex items-center gap-2"><NetworkChips n={ad.network} /> {ad.name}</span></td>
                 <td className="p-2"><AdStatusBadge s={ad.status} /></td>
@@ -135,6 +139,7 @@ function StatsPage() {
             ))}
           </tbody>
         </table>
+        <Pagination page={safePage} total={adRows.length} pageSize={pageSize} onPageChange={setPage} />
       </Section>
 
       <div className="mt-5 grid gap-5 lg:grid-cols-2">

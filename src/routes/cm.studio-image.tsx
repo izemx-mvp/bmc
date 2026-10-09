@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import { PageHeader } from "@/components/bmc/AppShell";
 import { ImageGenerator } from "@/components/bmc/MediaGenerators";
+import { Pagination } from "@/components/bmc/Pagination";
 import { Button } from "@/components/ui/button";
 import { newId, toIso, useBmc, type MediaItem } from "@/lib/bmc-store";
 import { readImageFile } from "@/lib/media";
@@ -24,8 +25,10 @@ export const Route = createFileRoute("/cm/studio-image")({
 });
 
 function ImageStudioPage() {
+  const pageSize = 12;
   const { library, addLibraryImage } = useBmc();
   const [generatorOpen, setGeneratorOpen] = useState(false);
+  const [page, setPage] = useState(1);
   const fileRef = useRef<HTMLInputElement>(null);
 
   const importImage = async (file: File) => {
@@ -52,7 +55,7 @@ function ImageStudioPage() {
       />
       {library.length ? (
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {library.map((image, index) => (
+          {library.slice((page - 1) * pageSize, page * pageSize).map((image, index) => (
             <article key={image.id} className="panel panel-hover animate-rise overflow-hidden" style={{ animationDelay: `${Math.min(index, 10) * 45}ms` }}>
               <div className="aspect-square overflow-hidden bg-surface-2"><img src={image.src} alt={image.name} className="h-full w-full object-cover transition-transform duration-700 hover:scale-105" loading="lazy" /></div>
               <div className="p-3.5"><p className="truncate text-sm font-medium">{image.name}</p><p className="mt-1 text-xs text-muted-foreground">Ajoutée le {image.createdAt.split("-").reverse().join("/")}</p></div>
@@ -62,6 +65,7 @@ function ImageStudioPage() {
       ) : (
         <div className="panel flex flex-col items-center gap-3 py-20 text-center"><ImageIcon className="h-8 w-8 text-muted-foreground" /><p className="font-display text-lg font-semibold">Aucune image dans la médiathèque</p><p className="text-sm text-muted-foreground">Importez un visuel ou générez votre première image.</p></div>
       )}
+      <Pagination page={Math.min(page, Math.max(1, Math.ceil(library.length / pageSize)))} total={library.length} pageSize={pageSize} onPageChange={setPage} />
       <ImageGenerator open={generatorOpen} onOpenChange={setGeneratorOpen} onPick={generated} />
     </>
   );
