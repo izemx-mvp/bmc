@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { PageHeader } from "@/components/bmc/AppShell";
 import { ConfirmDialog, FakePlayer, Pill } from "@/components/bmc/bits";
 import { VOICES } from "@/components/bmc/MediaGenerators";
+import { Pagination } from "@/components/bmc/Pagination";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
@@ -44,12 +45,14 @@ export const Route = createFileRoute("/cm/studio-video")({
 });
 
 function StudioPage() {
+  const pageSize = 12;
   const { videos, posts, ads } = useBmc();
   const [format, setFormat] = useState("all");
   const [lang, setLang] = useState("all");
   const [used, setUsed] = useState("all");
   const [period, setPeriod] = useState("all");
   const [openId, setOpenId] = useState<string | null>(null);
+  const [page, setPage] = useState(1);
 
   const list = useMemo(
     () =>
@@ -66,7 +69,7 @@ function StudioPage() {
   );
 
   const F = ({ value, set, items, w = "w-40" }: { value: string; set: (v: string) => void; items: [string, string][]; w?: string }) => (
-    <Select value={value} onValueChange={set}>
+    <Select value={value} onValueChange={(next) => { set(next); setPage(1); }}>
       <SelectTrigger className={cn("bg-surface/60", w)}><SelectValue /></SelectTrigger>
       <SelectContent>{items.map(([v, l]) => <SelectItem key={v} value={v}>{l}</SelectItem>)}</SelectContent>
     </Select>
@@ -82,7 +85,7 @@ function StudioPage() {
         <F value={period} set={setPeriod} items={[["all", "Toute période"], ["7", "7 derniers jours"], ["30", "30 derniers jours"]]} />
       </div>
       <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {list.map((v) => {
+        {list.slice((page - 1) * pageSize, page * pageSize).map((v) => {
           const usage = videoUsage(v.id, posts, ads);
           return (
             <button key={v.id} type="button" onClick={() => setOpenId(v.id)} className="panel panel-hover group overflow-hidden text-left">
@@ -111,6 +114,7 @@ function StudioPage() {
         })}
         {!list.length && <p className="col-span-full py-16 text-center text-sm text-muted-foreground">Aucune vidéo ne correspond à ces filtres.</p>}
       </div>
+      <Pagination page={Math.min(page, Math.max(1, Math.ceil(list.length / pageSize)))} total={list.length} pageSize={pageSize} onPageChange={setPage} />
       <VideoSheet video={videos.find((v) => v.id === openId) ?? null} onClose={() => setOpenId(null)} />
     </>
   );

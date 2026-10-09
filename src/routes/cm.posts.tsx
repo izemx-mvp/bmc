@@ -8,6 +8,7 @@ import { PLATFORM_META, PlatformChip } from "@/components/bmc/branding";
 import { ConfirmDialog, Pill, StatusBadge } from "@/components/bmc/bits";
 import { PostComposer } from "@/components/bmc/PostComposer";
 import { DELETE_POST_MSG, PostDetails } from "@/components/bmc/PostDetails";
+import { Pagination } from "@/components/bmc/Pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/cm/posts")({
 });
 
 function PostsPage() {
+  const pageSize = 9;
   const { posts, deletePost, generateAiPosts, retryPost } = useBmc();
   const [q, setQ] = useState("");
   const [status, setStatus] = useState<"all" | PostStatus>("all");
@@ -38,6 +40,7 @@ function PostsPage() {
   const [composer, setComposer] = useState<{ open: boolean; editing: Post | null }>({ open: false, editing: null });
   const [details, setDetails] = useState<Post | null>(null);
   const [toDelete, setToDelete] = useState<Post | null>(null);
+  const [page, setPage] = useState(1);
 
   const filtered = useMemo(
     () =>
@@ -50,6 +53,8 @@ function PostsPage() {
       ),
     [posts, q, status, platform, date],
   );
+  const safePage = Math.min(page, Math.max(1, Math.ceil(filtered.length / pageSize)));
+  const visiblePosts = filtered.slice((safePage - 1) * pageSize, safePage * pageSize);
 
   const runAi = () => {
     setGen(0);
@@ -97,31 +102,31 @@ function PostsPage() {
       <div className="panel mb-6 flex flex-wrap items-center gap-3 p-3">
         <div className="relative min-w-56 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Rechercher une publication…" className="bg-surface/60 pl-9" />
+          <Input value={q} onChange={(e) => { setQ(e.target.value); setPage(1); }} placeholder="Rechercher une publication…" className="bg-surface/60 pl-9" />
         </div>
-        <Select value={status} onValueChange={(v) => setStatus(v as typeof status)}>
+        <Select value={status} onValueChange={(v) => { setStatus(v as typeof status); setPage(1); }}>
           <SelectTrigger className="w-40 bg-surface/60"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les statuts</SelectItem>
             {(Object.keys(POST_STATUS_LABEL) as PostStatus[]).map((s) => <SelectItem key={s} value={s}>{POST_STATUS_LABEL[s]}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Select value={platform} onValueChange={(v) => setPlatform(v as typeof platform)}>
+        <Select value={platform} onValueChange={(v) => { setPlatform(v as typeof platform); setPage(1); }}>
           <SelectTrigger className="w-44 bg-surface/60"><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous les réseaux</SelectItem>
             {PLATFORMS.map((p) => <SelectItem key={p} value={p}>{PLATFORM_META[p].label}</SelectItem>)}
           </SelectContent>
         </Select>
-        <Input type="date" value={date} onChange={(e) => setDate(e.target.value)} className="w-44 bg-surface/60" />
+        <Input type="date" value={date} onChange={(e) => { setDate(e.target.value); setPage(1); }} className="w-44 bg-surface/60" />
         {(q || status !== "all" || platform !== "all" || date) && (
-          <Button variant="ghost" onClick={() => { setQ(""); setStatus("all"); setPlatform("all"); setDate(""); }}>Réinitialiser</Button>
+          <Button variant="ghost" onClick={() => { setQ(""); setStatus("all"); setPlatform("all"); setDate(""); setPage(1); }}>Réinitialiser</Button>
         )}
       </div>
 
       {filtered.length ? (
         <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-          {filtered.map((p, i) => {
+           {visiblePosts.map((p, i) => {
             const videos = p.media.filter((m) => m.kind === "video").length;
             return (
               <article key={p.id} className="panel panel-hover group animate-rise overflow-hidden" style={{ animationDelay: `${Math.min(i, 10) * 50}ms` }}>
@@ -170,6 +175,7 @@ function PostsPage() {
           <p className="max-w-sm text-sm text-muted-foreground">Ajustez vos filtres ou créez une nouvelle publication.</p>
         </div>
       )}
+      <Pagination page={safePage} total={filtered.length} pageSize={pageSize} onPageChange={setPage} />
 
       <PostComposer open={composer.open} editing={composer.editing} onOpenChange={(v) => setComposer((c) => ({ ...c, open: v }))} />
       <PostDetails post={details} onClose={() => setDetails(null)} onEdit={(p) => { setDetails(null); setComposer({ open: true, editing: p }); }} />

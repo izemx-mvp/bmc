@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { CalendarRange, ChevronLeft, ChevronRight, Megaphone, MessageSquare, Newspaper } from "lucide-react";
+import { CalendarRange, ChevronLeft, ChevronRight, Megaphone, MessageSquare, Newspaper, Search, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/bmc/AppShell";
@@ -11,8 +11,10 @@ import { PostDetails } from "@/components/bmc/PostDetails";
 import { AdDetails } from "@/routes/ads";
 import { CampaignDetails } from "@/routes/campaigns";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { AD_NETWORKS, toIso, useBmc, type Ad, type Campaign, type Post } from "@/lib/bmc-store";
+import { AD_NETWORKS, PLATFORM_META, PLATFORMS, POST_STATUS_LABEL, toIso, useBmc, type Ad, type Campaign, type PlatformId, type Post, type PostStatus } from "@/lib/bmc-store";
 
 export const Route = createFileRoute("/cm/calendar")({
   head: () => ({
@@ -51,6 +53,9 @@ function CalendarPage() {
   const [cursor, setCursor] = useState(new Date());
   const [view, setView] = useState<"month" | "week" | "day" | "agenda">("month");
   const [filters, setFilters] = useState<Record<Kind, boolean>>({ post: true, ad: true, campaign: true });
+  const [query, setQuery] = useState("");
+  const [postStatus, setPostStatus] = useState<"all" | PostStatus>("all");
+  const [platform, setPlatform] = useState<"all" | PlatformId>("all");
   const [post, setPost] = useState<Post | null>(null);
   const [ad, setAd] = useState<Ad | null>(null);
   const [camp, setCamp] = useState<Campaign | null>(null);
@@ -77,12 +82,13 @@ function CalendarPage() {
   const today = toIso(new Date());
   const eventsOn = (k: string): Ev[] => {
     const out: Ev[] = [];
-    if (filters.post) posts.filter((p) => p.date === k).forEach((p) => out.push({ kind: "post", item: p, time: p.time }));
+    const matchesQuery = (value: string) => !query.trim() || value.toLowerCase().includes(query.trim().toLowerCase());
+    if (filters.post) posts.filter((p) => p.date === k && matchesQuery(p.description) && (postStatus === "all" || p.status === postStatus) && (platform === "all" || p.platforms.includes(platform))).forEach((p) => out.push({ kind: "post", item: p, time: p.time }));
     if (filters.ad)
       ads
-        .filter((a) => a.startDate && a.status !== "draft" && a.startDate <= k && k <= (a.endDate ?? (a.status === "ended" ? a.startDate : today)))
+        .filter((a) => matchesQuery(a.name) && a.startDate && a.status !== "draft" && a.startDate <= k && k <= (a.endDate ?? (a.status === "ended" ? a.startDate : today)))
         .forEach((a) => out.push({ kind: "ad", item: a, time: a.startDate === k ? a.startTime : "00:00", start: a.startDate === k, end: a.endDate === k }));
-    if (filters.campaign) campaigns.filter((c) => c.date === k && c.status !== "cancelled").forEach((c) => out.push({ kind: "campaign", item: c, time: c.time }));
+    if (filters.campaign) campaigns.filter((c) => c.date === k && c.status !== "cancelled" && matchesQuery(c.name)).forEach((c) => out.push({ kind: "campaign", item: c, time: c.time }));
     return out.sort((a, b) => a.time.localeCompare(b.time));
   };
 
@@ -152,12 +158,25 @@ function CalendarPage() {
           </div>
         }
       />
-      <div className="mb-4 flex flex-wrap items-center gap-2">
+      <div className="panel mb-4 flex flex-wrap items-center gap-2 p-3">
+        <div className="relative min-w-52 flex-1">
+          <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher dans le calendrier…" className="bg-surface/60 pl-9" />
+        </div>
+        <Select value={postStatus} onValueChange={(value) => setPostStatus(value as typeof postStatus)}>
+          <SelectTrigger className="w-44 bg-surface/60"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="all">Tous les statuts</SelectItem>{(Object.keys(POST_STATUS_LABEL) as PostStatus[]).map((status) => <SelectItem key={status} value={status}>{POST_STATUS_LABEL[status]}</SelectItem>)}</SelectContent>
+        </Select>
+        <Select value={platform} onValueChange={(value) => setPlatform(value as typeof platform)}>
+          <SelectTrigger className="w-44 bg-surface/60"><SelectValue /></SelectTrigger>
+          <SelectContent><SelectItem value="all">Tous les réseaux</SelectItem>{PLATFORMS.map((id) => <SelectItem key={id} value={id}>{PLATFORM_META[id].label}</SelectItem>)}</SelectContent>
+        </Select>
         {(Object.keys(TYPE) as Kind[]).map((k) => (
           <button key={k} type="button" onClick={() => setFilters((f) => ({ ...f, [k]: !f[k] }))} className={cn("flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs transition-all", filters[k] ? "border-border bg-surface-2" : "border-dashed border-border opacity-50")}>
             <span className={cn("h-2.5 w-2.5 rounded-full", TYPE[k].dot)} /> {TYPE[k].label}
           </button>
         ))}
+        {(query || postStatus !== "all" || platform !== "all" || Object.values(filters).some((value) => !value)) && <Button variant="ghost" size="sm" onClick={() => { setQuery(""); setPostStatus("all"); setPlatform("all"); setFilters({ post: true, ad: true, campaign: true }); }}><X className="h-3.5 w-3.5" /> Réinitialiser</Button>}
       </div>
 
       <div className="panel animate-rise overflow-hidden">
