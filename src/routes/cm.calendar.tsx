@@ -4,7 +4,7 @@ import { CalendarRange, ChevronLeft, ChevronRight, Megaphone, MessageSquare, New
 import { toast } from "sonner";
 
 import { PageHeader } from "@/components/bmc/AppShell";
-import { PlatformChip } from "@/components/bmc/branding";
+import { PLATFORM_META, PlatformChip } from "@/components/bmc/branding";
 import { Pill } from "@/components/bmc/bits";
 import { PostComposer } from "@/components/bmc/PostComposer";
 import { PostDetails } from "@/components/bmc/PostDetails";
@@ -14,7 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { AD_NETWORKS, PLATFORM_META, PLATFORMS, POST_STATUS_LABEL, toIso, useBmc, type Ad, type Campaign, type PlatformId, type Post, type PostStatus } from "@/lib/bmc-store";
+import { AD_NETWORKS, PLATFORMS, POST_STATUS_LABEL, toIso, useBmc, type Ad, type Campaign, type PlatformId, type Post, type PostStatus } from "@/lib/bmc-store";
 
 export const Route = createFileRoute("/cm/calendar")({
   head: () => ({
