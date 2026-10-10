@@ -194,9 +194,10 @@ export const SEED_LIBRARY: LibraryImage[] = [
 
 /* ---------------- Posts ---------------- */
 
-const P = (p: Omit<Post, "id" | "perNetwork"> & { perNetwork?: Post["perNetwork"] }): Post => ({
+const P = (p: Omit<Post, "id" | "perNetwork" | "language"> & { perNetwork?: Post["perNetwork"]; language?: Post["language"] }): Post => ({
   id: id("p"),
   perNetwork: {},
+  language: "fr",
   ...p,
 });
 
@@ -271,10 +272,10 @@ export const SEED_POSTS: Post[] = [
 /* ---------------- Configuration ---------------- */
 
 export const SEED_PLATFORMS: PlatformSettings[] = [
-  { id: "instagram", enabled: true, handle: "@bmc.maroc", tone: "inspirant", postsToGenerate: 4, captionLength: "courte", frequency: "3x", language: "fr", autoGenerate: true, usualTime: "18:30", nextGeneration: d(6) },
-  { id: "facebook", enabled: true, handle: "BMC Maroc", tone: "proche", postsToGenerate: 3, captionLength: "moyenne", frequency: "hebdo", language: "fr", autoGenerate: false, usualTime: "12:30", nextGeneration: d(14) },
-  { id: "linkedin", enabled: true, handle: "BMC — Benomar Metal Company", tone: "expert", postsToGenerate: 3, captionLength: "longue", frequency: "hebdo", language: "fr", autoGenerate: false, usualTime: "08:45", nextGeneration: d(14) },
-  { id: "tiktok", enabled: true, handle: "@bmc.officiel", tone: "proche", postsToGenerate: 2, captionLength: "courte", frequency: "bimensuelle", language: "darija", autoGenerate: false, usualTime: "19:00", nextGeneration: d(20) },
+  { id: "instagram", enabled: true, handle: "@bmc.maroc", tone: "inspirant", postsToGenerate: 4, captionLength: "courte", frequency: "3x", language: "fr", addLogo: true, autoGenerate: true, usualTime: "18:30", nextGeneration: d(6) },
+  { id: "facebook", enabled: true, handle: "BMC Maroc", tone: "proche", postsToGenerate: 3, captionLength: "moyenne", frequency: "hebdo", language: "fr", addLogo: true, autoGenerate: false, usualTime: "12:30", nextGeneration: d(14) },
+  { id: "linkedin", enabled: true, handle: "BMC — Benomar Metal Company", tone: "expert", postsToGenerate: 3, captionLength: "longue", frequency: "hebdo", language: "fr", addLogo: true, autoGenerate: false, usualTime: "08:45", nextGeneration: d(14) },
+  { id: "tiktok", enabled: true, handle: "@bmc.officiel", tone: "proche", postsToGenerate: 2, captionLength: "courte", frequency: "bimensuelle", language: "darija", addLogo: false, autoGenerate: false, usualTime: "19:00", nextGeneration: d(20) },
 ];
 
 export const SEED_BRAND: BrandProfile = {

@@ -113,6 +113,7 @@ export function buildAiPosts(settings: PlatformSettings[], brand: BrandProfile, 
           location: "Casablanca, Maroc",
           tone: s.tone,
           captionLength: s.captionLength,
+          language: s.language,
           aiGenerated: true,
           idea: `Suggestion IA — ${idea.angle}`,
         });
@@ -204,7 +205,15 @@ export function BmcProvider({ children }: { children: ReactNode }) {
     try {
       if (localStorage.getItem("bmc-auth") === "1") setAuthed(true);
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) setData({ ...seedData(), ...(JSON.parse(raw) as Partial<Data>) });
+      if (raw) {
+        const saved = JSON.parse(raw) as Partial<Data>;
+        setData({
+          ...seedData(),
+          ...saved,
+          posts: saved.posts?.map((post) => ({ ...post, language: post.language ?? "fr" })) ?? seedData().posts,
+          platformSettings: saved.platformSettings?.map((setting) => ({ ...setting, addLogo: setting.addLogo ?? false })) ?? seedData().platformSettings,
+        });
+      }
     } catch {
       /* ignore */
     }
@@ -421,6 +430,7 @@ export const emptyPost = (): PostDraft => ({
   location: "",
   tone: "expert",
   captionLength: "moyenne",
+  language: "fr",
 });
 
 /** Où une vidéo est utilisée (posts et publicités). */
