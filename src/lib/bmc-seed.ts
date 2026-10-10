@@ -194,7 +194,7 @@ export const SEED_LIBRARY: LibraryImage[] = [
 
 /* ---------------- Posts ---------------- */
 
-const P = (p: Omit<Post, "id" | "perNetwork"> & { perNetwork?: Post["perNetwork"] }): Post => ({
+const P = (p: Omit<Post, "id" | "perNetwork" | "language"> & { perNetwork?: Post["perNetwork"]; language?: Post["language"] }): Post => ({
   id: id("p"),
   perNetwork: {},
   language: "fr",
