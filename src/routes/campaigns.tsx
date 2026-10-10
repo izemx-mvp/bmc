@@ -1,6 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
-import { AlertTriangle, Download, Info, Plus, Send, Trash2, Upload, Users, X } from "lucide-react";
+import { AlertTriangle, Download, Info, Plus, Search, Send, Trash2, Upload, Users, X } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
 
@@ -8,6 +8,7 @@ import { AppShell, PageHeader } from "@/components/bmc/AppShell";
 import { ConfirmDialog, Pill, type Tone } from "@/components/bmc/bits";
 import { Pagination } from "@/components/bmc/Pagination";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,6 +22,7 @@ import {
   CONTACT_LISTS,
   TELEGRAM_SUBSCRIBERS,
   WA_TEMPLATES,
+  campaignRecipients,
   eligibleContacts,
   fmtDateTime,
   fmtPhone,
@@ -83,7 +85,7 @@ export function CampaignDetails({ campaign: c, onClose }: { campaign: Campaign |
           <div className="mt-4 space-y-4 text-sm">
             <div className="flex items-center gap-3"><ChannelTag c={c.channel} /><CampaignBadge s={c.status} /></div>
             <p><span className="text-muted-foreground">Envoi : </span>{fmtDateTime(c.date, c.time)}</p>
-            <p><span className="text-muted-foreground">Liste : </span>{c.list}</p>
+            <p><span className="text-muted-foreground">Destinataires : </span>{c.recipientMode === "all" ? "Tous" : c.recipientMode === "selected" ? `${c.recipientIds?.length ?? 0} sélectionné(s)` : c.list}</p>
             {tpl ? (
               <div className="rounded-xl border border-border bg-surface/50 p-3"><p className="text-[11px] text-muted-foreground">Modèle : {tpl.name} ({tpl.category}, {tpl.language})</p><p className="mt-1">{fillTemplate(tpl.body, c.variables)}</p></div>
             ) : (
@@ -110,7 +112,7 @@ function CampaignsPage() {
   const safePage = Math.min(page, Math.max(1, Math.ceil(campaigns.length / pageSize)));
 
   const blank = (channel: Campaign["channel"]): Campaign => ({
-    id: newId(), name: "", channel, list: channel === "whatsapp" ? "Distributeurs" : "Abonnés du bot", date: isoFromToday(1), time: "10:00", status: "draft",
+    id: newId(), name: "", channel, list: "Tous les destinataires", recipientMode: "all", recipientIds: [], date: isoFromToday(1), time: "10:00", status: "draft",
     ...(channel === "whatsapp" ? { templateId: WA_TEMPLATES[0]!.id, variables: { "1": "{nom}", "2": "{société}" } } : { text: "", images: [], link: "" }),
     stats: { sent: 0, delivered: 0, read: 0, replies: 0, failed: 0, unsubscribed: 0, newSubscribers: 0 },
   });
@@ -169,10 +171,13 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
   const { contacts, saveCampaign, setCampaignStatus } = useBmc();
   const [c, setC] = useState<Campaign>(initial);
   const [err, setErr] = useState<Partial<Record<string, string>>>({});
+  const [recipientSearch, setRecipientSearch] = useState("");
   const set = (p: Partial<Campaign>) => setC((x) => ({ ...x, ...p }));
   const tpl = WA_TEMPLATES.find((t) => t.id === c.templateId);
   const varNums = tpl ? Array.from(new Set(tpl.body.match(/\{\{(\d)\}\}/g)?.map((m) => m[2]!) ?? [])) : [];
-  const recipients = c.channel === "whatsapp" ? eligibleContacts(contacts, c.list).length : TELEGRAM_SUBSCRIBERS;
+  const availableRecipients = contacts.filter((contact) => !contact.unsubscribed && (c.channel === "telegram" || contact.consent));
+  const shownRecipients = availableRecipients.filter((contact) => `${contact.name} ${contact.company} ${contact.phone}`.toLowerCase().includes(recipientSearch.toLowerCase()));
+  const recipients = campaignRecipients(c, contacts).length;
   const imgRef = useRef<HTMLInputElement>(null);
   const sample = eligibleContacts(contacts, c.list)[0];
   const preview = tpl ? fillTemplate(tpl.body, Object.fromEntries(Object.entries(c.variables ?? {}).map(([k, v]) => [k, v.replace("{nom}", sample?.name ?? "Youssef").replace("{société}", sample?.company ?? "Sanitaire Atlas")]))) : "";
@@ -183,6 +188,7 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
     if (mode !== "draft") {
       if (c.channel === "whatsapp") varNums.forEach((n) => { if (!c.variables?.[n]?.trim()) e[`v${n}`] = "Champ requis"; });
       if (c.channel === "telegram" && !c.text?.trim()) e["text"] = "Champ requis";
+      if (c.recipientMode === "selected" && !c.recipientIds?.length) e["recipients"] = "Choisissez au moins un destinataire";
       if (mode === "plan" && isPast(c.date, c.time)) e["date"] = "La date ne peut pas être dans le passé";
     }
     setErr(e);
@@ -223,13 +229,6 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
                     </div>
                   ))}
                 </div>
-                <div>
-                  <Label className="text-xs">Liste (contacts consentants uniquement)</Label>
-                  <Select value={c.list} onValueChange={(v) => set({ list: v })}>
-                    <SelectTrigger className="mt-1.5 bg-surface/60"><SelectValue /></SelectTrigger>
-                    <SelectContent>{CONTACT_LISTS.map((l) => <SelectItem key={l} value={l}>{l} — {eligibleContacts(contacts, l).length} destinataires</SelectItem>)}</SelectContent>
-                  </Select>
-                </div>
               </>
             ) : (
               <>
@@ -248,10 +247,48 @@ function CampaignEditor({ initial, onClose }: { initial: Campaign; onClose: () =
                 <div><Label className="text-xs">Lien</Label><Input value={c.link ?? ""} onChange={(e) => set({ link: e.target.value })} placeholder="https://bmc.ma/…" className="mt-1.5 bg-surface/60" /></div>
                 <div className="flex items-center gap-4 rounded-xl border border-border bg-surface/50 p-3">
                   <div className="rounded-lg bg-white p-2"><QRCodeSVG value={BOT_LINK} size={84} /></div>
-                  <div className="text-[12px]"><p className="font-medium">Destinataires : abonnés du bot uniquement ({TELEGRAM_SUBSCRIBERS})</p><a href={BOT_LINK} target="_blank" rel="noreferrer" className="text-primary hover:underline">{BOT_LINK}</a><p className="mt-1 text-muted-foreground">Partagez ce lien ou ce QR code pour gagner des abonnés.</p></div>
+                  <div className="text-[12px]"><p className="font-medium">Abonnés Telegram disponibles dans les contacts</p><a href={BOT_LINK} target="_blank" rel="noreferrer" className="text-primary hover:underline">{BOT_LINK}</a><p className="mt-1 text-muted-foreground">Partagez ce lien ou ce QR code pour gagner des abonnés.</p></div>
                 </div>
               </>
             )}
+            <div className="rounded-xl border border-border bg-surface/40 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <Label>Destinataires</Label>
+                  <p className="mt-0.5 text-[11px] text-muted-foreground">{c.channel === "whatsapp" ? "Contacts consentants et non désabonnés" : "Contacts Telegram non désabonnés"}</p>
+                </div>
+                <div className="inline-flex rounded-lg border border-border bg-background/60 p-1">
+                  <Button type="button" size="sm" variant={c.recipientMode !== "selected" ? "default" : "ghost"} onClick={() => set({ recipientMode: "all", recipientIds: [] })}>Tous ({availableRecipients.length})</Button>
+                  <Button type="button" size="sm" variant={c.recipientMode === "selected" ? "default" : "ghost"} onClick={() => set({ recipientMode: "selected", recipientIds: c.recipientIds ?? [] })}>Choisir</Button>
+                </div>
+              </div>
+              {c.recipientMode === "selected" && (
+                <div className="mt-3 space-y-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input value={recipientSearch} onChange={(e) => setRecipientSearch(e.target.value)} placeholder="Rechercher un destinataire…" className="bg-background/70 pl-9" />
+                  </div>
+                  <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                    <span>{c.recipientIds?.length ?? 0} sélectionné(s)</span>
+                    <Button type="button" variant="ghost" size="sm" onClick={() => set({ recipientIds: shownRecipients.every((contact) => c.recipientIds?.includes(contact.id)) ? (c.recipientIds ?? []).filter((id) => !shownRecipients.some((contact) => contact.id === id)) : Array.from(new Set([...(c.recipientIds ?? []), ...shownRecipients.map((contact) => contact.id)])) })}>
+                      {shownRecipients.every((contact) => c.recipientIds?.includes(contact.id)) ? "Tout désélectionner" : "Tout sélectionner"}
+                    </Button>
+                  </div>
+                  <div className="scrollbar-thin max-h-52 space-y-1 overflow-y-auto pr-1">
+                    {shownRecipients.map((contact) => {
+                      const checked = c.recipientIds?.includes(contact.id) ?? false;
+                      return (
+                        <label key={contact.id} className="flex cursor-pointer items-center gap-3 rounded-lg border border-transparent px-2.5 py-2 transition-colors hover:border-border hover:bg-surface-2/60">
+                          <Checkbox checked={checked} onCheckedChange={() => set({ recipientIds: checked ? (c.recipientIds ?? []).filter((id) => id !== contact.id) : [...(c.recipientIds ?? []), contact.id] })} />
+                          <span className="min-w-0 flex-1"><span className="block truncate text-sm font-medium">{contact.name}</span><span className="block truncate text-[11px] text-muted-foreground">{contact.company} · {fmtPhone(contact.phone)}</span></span>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  {err["recipients"] && <p className="text-[11px] text-destructive">{err["recipients"]}</p>}
+                </div>
+              )}
+            </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div><Label className="text-xs">Date (si planifiée)</Label><Input type="date" value={c.date} onChange={(e) => set({ date: e.target.value })} className="mt-1.5 bg-surface/60" />{err["date"] && <p className="mt-1 text-[11px] text-destructive">{err["date"]}</p>}</div>
               <div><Label className="text-xs">Heure</Label><Input type="time" value={c.time} onChange={(e) => set({ time: e.target.value })} className="mt-1.5 bg-surface/60" /></div>

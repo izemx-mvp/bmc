@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adCanLaunch, fmtDate, fmtDateTime, normalizeMaPhone, scheduleDates, validatePost } from "./bmc-model";
+import { adCanLaunch, campaignRecipients, fmtDate, fmtDateTime, normalizeMaPhone, scheduleDates, validatePost } from "./bmc-model";
 
 const base = {
   description: "Texte",
@@ -47,5 +47,15 @@ describe("règles BMC", () => {
     expect(adCanLaunch({ budget: 0, startDate: "2026-10-10", startTime: "09:00", budgetType: "daily" })).toBe(false);
     expect(adCanLaunch({ budget: 150, startDate: "", startTime: "", budgetType: "daily" })).toBe(false);
     expect(adCanLaunch({ budget: 150, startDate: "2026-10-10", startTime: "09:00", budgetType: "daily" })).toBe(true);
+  });
+  it("une campagne peut viser tous les destinataires ou une sélection individuelle", () => {
+    const contacts = [
+      { id: "a", name: "A", company: "BMC", phone: "+212611111111", category: "Client", consent: true, unsubscribed: false, lists: ["Clients"] },
+      { id: "b", name: "B", company: "BMC", phone: "+212622222222", category: "Client", consent: true, unsubscribed: false, lists: ["Clients"] },
+      { id: "c", name: "C", company: "BMC", phone: "+212633333333", category: "Client", consent: false, unsubscribed: false, lists: ["Clients"] },
+    ];
+    expect(campaignRecipients({ channel: "whatsapp", list: "Clients", recipientMode: "all" }, contacts).map((c) => c.id)).toEqual(["a", "b"]);
+    expect(campaignRecipients({ channel: "whatsapp", list: "Clients", recipientMode: "selected", recipientIds: ["b"] }, contacts).map((c) => c.id)).toEqual(["b"]);
+    expect(campaignRecipients({ channel: "telegram", list: "Clients", recipientMode: "selected", recipientIds: ["c"] }, contacts).map((c) => c.id)).toEqual(["c"]);
   });
 });

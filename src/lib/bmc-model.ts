@@ -223,11 +223,24 @@ export type Campaign = {
   images?: string[];
   link?: string;
   list: string;
+  recipientMode?: "all" | "selected";
+  recipientIds?: string[];
   date: string;
   time: string;
   status: CampaignStatus;
   stats: { sent: number; delivered: number; read: number; replies: number; failed: number; unsubscribed: number; newSubscribers: number };
 };
+
+/** Contacts disponibles selon le canal, puis sélectionnés pour la campagne. */
+export function campaignRecipients(campaign: Pick<Campaign, "channel" | "list" | "recipientMode" | "recipientIds">, contacts: Contact[]) {
+  const eligible = contacts.filter((contact) => !contact.unsubscribed && (campaign.channel === "telegram" || contact.consent));
+  if (campaign.recipientMode === "all") return eligible;
+  if (campaign.recipientMode === "selected") {
+    const selected = new Set(campaign.recipientIds ?? []);
+    return eligible.filter((contact) => selected.has(contact.id));
+  }
+  return eligible.filter((contact) => contact.lists.includes(campaign.list));
+}
 
 export type AiUsageEvent = { id: string; kind: "image" | "video" | "retouche"; date: string };
 
