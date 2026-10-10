@@ -83,6 +83,7 @@ export type Post = {
   location: string;
   tone: ToneId;
   captionLength: CaptionLength;
+  language: LangId;
   aiGenerated?: boolean;
   idea?: string;
 };
@@ -96,6 +97,7 @@ export type PlatformSettings = {
   captionLength: CaptionLength;
   frequency: FrequencyId;
   language: LangId;
+  addLogo: boolean;
   autoGenerate: boolean;
   usualTime: string;
   nextGeneration: string; // AAAA-MM-JJ

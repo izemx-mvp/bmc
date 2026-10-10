@@ -167,6 +167,15 @@ function ConfigPage() {
                     </p>
                   </div>
                 </div>
+                <div className="rounded-xl border border-border bg-surface/50 p-3">
+                  <label className="flex items-center justify-between gap-4 text-sm font-medium">
+                    <span>
+                      Ajouter le logo
+                      <span className="mt-0.5 block text-[11px] font-normal text-muted-foreground">Afficher le logo de l’entreprise sur les visuels de {PLATFORM_META[p.id].label}.</span>
+                    </span>
+                    <Switch checked={p.addLogo ?? false} onCheckedChange={(v) => upd(p.id, { addLogo: v })} aria-label={`Ajouter le logo sur ${PLATFORM_META[p.id].label}`} />
+                  </label>
+                </div>
               </div>
             </article>
           ))}

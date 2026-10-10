@@ -31,6 +31,7 @@ import { cn } from "@/lib/utils";
 import { readImageFile, readVideoFile } from "@/lib/media";
 import {
   CAPTION_LENGTHS,
+  LANGS,
   PLATFORMS,
   TONES,
   emptyPost,
@@ -42,6 +43,7 @@ import {
   validatePost,
   type CaptionLength,
   type MediaItem,
+  type LangId,
   type NetworkContent,
   type PlatformId,
   type Post,
@@ -399,7 +401,7 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
               </section>
 
               <section className="space-y-4">
-                <div className="grid gap-4 sm:grid-cols-2">
+                <div className="grid gap-4 sm:grid-cols-3">
                   <div>
                     <Label>Tonalité</Label>
                     <Select value={draft.tone} onValueChange={(v) => set({ tone: v as ToneId })}>
@@ -412,6 +414,13 @@ export function PostComposer({ open, onOpenChange, editing }: { open: boolean; o
                     <Select value={draft.captionLength} onValueChange={(v) => set({ captionLength: v as CaptionLength })}>
                       <SelectTrigger className="mt-2 bg-surface/60"><SelectValue /></SelectTrigger>
                       <SelectContent>{CAPTION_LENGTHS.map((l) => <SelectItem key={l.id} value={l.id}>{l.label} — {l.hint}</SelectItem>)}</SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label>Langue</Label>
+                    <Select value={draft.language ?? "fr"} onValueChange={(v) => set({ language: v as LangId })}>
+                      <SelectTrigger className="mt-2 bg-surface/60"><SelectValue /></SelectTrigger>
+                      <SelectContent>{LANGS.map((l) => <SelectItem key={l.id} value={l.id}>{l.label}</SelectItem>)}</SelectContent>
                     </Select>
                   </div>
                 </div>

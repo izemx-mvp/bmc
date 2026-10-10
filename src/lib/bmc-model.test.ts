@@ -13,6 +13,7 @@ const base = {
   location: "",
   tone: "expert" as const,
   captionLength: "moyenne" as const,
+  language: "fr" as const,
 };
 const now = new Date(2026, 9, 7, 12, 0);
 

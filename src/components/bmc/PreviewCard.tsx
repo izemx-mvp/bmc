@@ -17,6 +17,7 @@ export function PreviewCard({ draft, platform }: { draft: PostDraft; platform: P
   const { platformSettings, brand } = useBmc();
   const [active, setActive] = useState(0);
   const handle = platformSettings.find((s) => s.id === platform)?.handle ?? brand.name;
+  const addLogo = platformSettings.find((s) => s.id === platform)?.addLogo ?? false;
   const { caption, hashtags, location } = contentFor(draft, platform);
   const media = draft.media;
   const cur = media[Math.min(active, Math.max(0, media.length - 1))];
@@ -29,6 +30,7 @@ export function PreviewCard({ draft, platform }: { draft: PostDraft; platform: P
   const Media = ({ aspect }: { aspect: string }) => (
     <div className={cn("relative bg-surface-2", aspect)}>
       {cur ? <img src={cur.src} alt="" className="h-full w-full object-cover" /> : <div className="flex h-full items-center justify-center text-xs text-muted-foreground">Aucun média</div>}
+      {cur && addLogo && <span className="absolute bottom-3 left-3 flex h-9 max-w-24 items-center rounded-md bg-background/85 px-2 shadow-md backdrop-blur"><img src={brand.logo ?? logoMark} alt="Logo de l’entreprise" className="max-h-6 max-w-full object-contain" /></span>}
       {cur?.kind === "video" && (
         <span className="absolute inset-0 flex items-center justify-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-full bg-black/55 text-white"><Play className="ml-0.5 h-5 w-5" /></span>
@@ -58,6 +60,7 @@ export function PreviewCard({ draft, platform }: { draft: PostDraft; platform: P
     return (
       <div className="relative mx-auto aspect-[9/16] w-full max-w-[300px] overflow-hidden rounded-[22px] bg-black text-white shadow-xl">
         {cur ? <img src={cur.src} alt="" className="h-full w-full object-cover opacity-90" /> : null}
+        {cur && addLogo && <span className="absolute left-3 top-12 flex h-9 max-w-24 items-center rounded-md bg-background/85 px-2 shadow-md backdrop-blur"><img src={brand.logo ?? logoMark} alt="Logo de l’entreprise" className="max-h-6 max-w-full object-contain" /></span>}
         {cur?.kind !== "video" && <span className="absolute left-3 top-3 rounded bg-black/60 px-2 py-0.5 text-[10px]">Diaporama photo</span>}
         <div className="absolute right-2 bottom-24 flex flex-col items-center gap-4 text-[10px]">
           <span className="h-9 w-9 overflow-hidden rounded-full border-2 border-white bg-white"><img src={brand.logo ?? logoMark} alt="" className="h-full w-full object-contain p-1" /></span>

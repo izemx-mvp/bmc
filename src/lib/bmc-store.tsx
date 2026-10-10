@@ -113,6 +113,7 @@ export function buildAiPosts(settings: PlatformSettings[], brand: BrandProfile, 
           location: "Casablanca, Maroc",
           tone: s.tone,
           captionLength: s.captionLength,
+          language: s.language,
           aiGenerated: true,
           idea: `Suggestion IA — ${idea.angle}`,
         });
@@ -421,6 +422,7 @@ export const emptyPost = (): PostDraft => ({
   location: "",
   tone: "expert",
   captionLength: "moyenne",
+  language: "fr",
 });
 
 /** Où une vidéo est utilisée (posts et publicités). */
