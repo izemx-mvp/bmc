@@ -2,6 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 
 import {
   isPast,
+  campaignRecipients,
   isoFromToday,
   nextGenerationDate,
   scheduleDates,
@@ -402,10 +403,10 @@ export const eligibleContacts = (contacts: Contact[], list: string) =>
 
 function simulateCampaignStats(c: Campaign, contacts: Contact[]): Campaign["stats"] {
   if (c.channel === "telegram") {
-    const sent = 247;
+    const sent = c.recipientMode ? campaignRecipients(c, contacts).length : 247;
     return { sent, delivered: sent - 2, read: 0, replies: 0, failed: 2, unsubscribed: 0, newSubscribers: 9 };
   }
-  const sent = eligibleContacts(contacts, c.list).length;
+  const sent = campaignRecipients(c, contacts).length;
   const delivered = Math.max(0, sent - 1);
   return {
     sent,
